@@ -1,0 +1,7 @@
+{
+  "name": "Zam (잼)",
+  "description": "음악으로 노는 재미있는 세상, Zam",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
