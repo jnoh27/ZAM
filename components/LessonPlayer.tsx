@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as Tone from 'tone';
-import { ArrowLeft, Check, Volume2, ArrowRight, Star, Heart, Cloud, Sun, Music } from 'lucide-react';
+import { ArrowLeft, Check, Volume2, ArrowRight, Star, Heart, Cloud, Sun, Music, Circle, Triangle, Square } from 'lucide-react';
 
 interface LessonPlayerProps {
     lessonId: string;
@@ -33,6 +33,9 @@ const LESSONS: Record<string, LessonStep[]> = {
     ],
     'rhythm-beat': [
         { type: 'play', title: '다양한 리듬 체험', description: '가장 흔하게 쓰이는 8가지 리듬 패턴을 직접 들어보세요.' }
+    ],
+    'rhythm-pattern': [
+        { type: 'play', title: '드럼 머신 스튜디오', description: '킥, 스네어, 하이햇이 조합된 16스텝 시퀀서로 리듬을 파악해보세요.' }
     ],
     'pitch': [
         { type: 'listen', title: '높은 소리와 낮은 소리', description: '새소리와 코끼리 소리를 비교해봐요' },
@@ -109,10 +112,12 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({ lessonId, onComplete
 
         switch (lessonId) {
             case 'rhythm-intro':
-            case 'rhythm-pattern':
             case 'rhythm-master':
                 return <RhythmGame step={currentStep} onComplete={handleStepComplete} membrane={membraneRef.current} />;
             case 'rhythm-beat':
+                return <RhythmBeatGame step={currentStep} onComplete={handleStepComplete} />;
+            case 'rhythm-pattern':
+                return <RhythmMachineGame step={currentStep} onComplete={handleStepComplete} />;
                 return <RhythmBeatGame step={currentStep} onComplete={handleStepComplete} />;
             case 'pitch': return <PitchGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
             case 'melody': return <MelodyGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
@@ -361,6 +366,216 @@ const RhythmBeatGame: React.FC<{ step: LessonStep, onComplete: () => void }> = (
                     </div>
                 </div>
 
+            </div>
+        </div>
+    );
+};
+
+const MULTI_PATTERNS = [
+    { name: '정박', desc: 'EDM의 핵심. 킥 4번, 엇박 하이햇과 정박 스네어.', kick: [0, 4, 8, 12], snare: [4, 12], hihat: [2, 6, 10, 14] },
+    { name: '투 비트', desc: '경쾌한 락/펑크. 빠른 속도로 연주되는 베이직 비트.', kick: [0, 8], snare: [4, 12], hihat: [0, 2, 4, 6, 8, 10, 12, 14] },
+    { name: '8비트 기본', desc: '"쿵-쿵-팍-쿵" 대중음악의 가장 표준적인 리듬.', kick: [0, 2, 8, 10], snare: [4, 12], hihat: [0, 2, 4, 6, 8, 10, 12, 14] },
+    { name: '저지 클럽', desc: '독특한 킥 바운스와 잘게 쪼개지는 하이햇.', kick: [0, 4, 8, 11, 14], snare: [4, 12], hihat: [0, 2, 4, 6, 8, 10, 12, 14] },
+    { name: '엇박 강조', desc: '뒷박을 강조해 펑키하고 쫄깃한 느낌.', kick: [0, 6, 8], snare: [4, 12], hihat: [0, 2, 4, 6, 8, 10, 12, 14] },
+    { name: '셔플/스윙', desc: '셋잇단음표 느낌의 바운스. 블루스와 재즈 기반.', kick: [0, 8], snare: [4, 12], hihat: [0, 3, 4, 7, 8, 11, 12, 15] },
+    { name: '트랩/힙합', desc: '잘게 쪼개지는 16비트 하이햇과 묵직한 808 킥.', kick: [0, 3, 8, 12], snare: [4, 12], hihat: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] },
+    { name: '보사노바', desc: '라틴 보사노바 크라베 패턴과 부드러운 리듬.', kick: [0, 6, 8, 14], snare: [2, 5, 9, 12, 15], hihat: [0, 2, 4, 6, 8, 10, 12, 14] },
+];
+
+const RhythmMachineGame: React.FC<{ step: LessonStep, onComplete: () => void }> = ({ step, onComplete }) => {
+    const [bpm, setBpm] = useState(120);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [selectedPatternIndex, setSelectedPatternIndex] = useState(0);
+    const [currentBeat, setCurrentBeat] = useState(-1);
+
+    // Audio Refs
+    const kickRef = useRef<Tone.MembraneSynth | null>(null);
+    const snareRef = useRef<Tone.NoiseSynth | null>(null);
+    const hihatRef = useRef<Tone.MetalSynth | null>(null);
+    const transportEventRef = useRef<number | null>(null);
+
+    // Dynamic ref to current pattern
+    const selectedPatternRef = useRef(MULTI_PATTERNS[0]);
+    useEffect(() => {
+        selectedPatternRef.current = MULTI_PATTERNS[selectedPatternIndex];
+    }, [selectedPatternIndex]);
+
+    // Setup Synths
+    useEffect(() => {
+        kickRef.current = new Tone.MembraneSynth({ pitchDecay: 0.05, octaves: 4, oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 } }).toDestination();
+        snareRef.current = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.001, decay: 0.2, sustain: 0 } }).toDestination();
+        hihatRef.current = new Tone.MetalSynth({ envelope: { attack: 0.001, decay: 0.1, release: 0.01 }, harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5 }).toDestination();
+        hihatRef.current.volume.value = -12; // lower hihat volume
+
+        return () => {
+            kickRef.current?.dispose();
+            snareRef.current?.dispose();
+            hihatRef.current?.dispose();
+            if (transportEventRef.current !== null) Tone.Transport.clear(transportEventRef.current);
+            Tone.Transport.stop();
+            Tone.Transport.cancel(0);
+        };
+    }, []);
+
+    // Toggle Play State
+    const togglePlay = async () => {
+        if (!isPlaying) {
+            await Tone.start();
+            Tone.Transport.bpm.value = bpm;
+
+            let stepCount = 0;
+            if (transportEventRef.current !== null) Tone.Transport.clear(transportEventRef.current);
+
+            transportEventRef.current = Tone.Transport.scheduleRepeat((time) => {
+                const stepIdx = stepCount % 16;
+                const pattern = selectedPatternRef.current;
+
+                if (pattern.kick.includes(stepIdx)) kickRef.current?.triggerAttackRelease("C1", "16n", time);
+                if (pattern.snare.includes(stepIdx)) snareRef.current?.triggerAttackRelease("16n", time);
+                if (pattern.hihat.includes(stepIdx)) hihatRef.current?.triggerAttackRelease("32n", time);
+
+                Tone.Draw.schedule(() => { setCurrentBeat(stepIdx); }, time);
+                stepCount++;
+            }, "16n");
+
+            Tone.Transport.start();
+            setIsPlaying(true);
+        } else {
+            Tone.Transport.pause();
+            setIsPlaying(false);
+            setCurrentBeat(-1);
+        }
+    };
+
+    // Handle BPM Adjustments
+    const adjustBpm = (amount: number) => {
+        setBpm(prev => {
+            const newBpm = Math.max(50, Math.min(250, prev + amount));
+            Tone.Transport.bpm.value = newBpm;
+            return newBpm;
+        });
+    };
+
+    const selectedPattern = MULTI_PATTERNS[selectedPatternIndex];
+
+    const renderGridRow = (name: string, data: number[], iconNode: React.ReactNode, rowColor: string) => (
+        <div className="flex items-center gap-4 w-full">
+            {/* Icon Circle */}
+            <div
+                className="w-16 h-16 rounded-full flex items-center justify-center text-white shadow-lg shrink-0 relative"
+                style={{ backgroundColor: rowColor }}
+            >
+                <div>{iconNode}</div>
+            </div>
+            {/* Steps */}
+            <div className="flex-1 flex gap-2 h-16">
+                {Array.from({ length: 16 }).map((_, i) => {
+                    const isActive = data.includes(i);
+                    const isCurrentStep = currentBeat === i;
+                    const isBigBeat = i % 4 === 0;
+
+                    return (
+                        <div
+                            key={i}
+                            className={`
+                                flex-1 rounded-xl transition-all duration-75 relative border-b-4
+                                ${isActive
+                                    ? 'shadow-md translate-y-[-2px]'
+                                    : 'bg-white border-[#DADCE0]'
+                                }
+                                ${isCurrentStep ? 'ring-2 ring-indigo-400 z-10' : ''}
+                                ${isBigBeat && !isActive ? 'bg-[#E8EAED]' : ''}
+                            `}
+                            style={{
+                                backgroundColor: isActive ? rowColor : undefined,
+                                borderColor: isActive ? 'rgba(0,0,0,0.1)' : undefined
+                            }}
+                        >
+                            {isCurrentStep && isActive && <div className="absolute inset-0 bg-white/30 rounded-xl animate-ping" />}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="flex flex-col items-center w-full max-w-[1200px] mx-auto min-h-[700px] px-8 py-8 animate-fade-in relative z-10">
+            {/* Top Bar: BPM Controller & Play */}
+            <div className="flex items-center justify-between w-full mb-8">
+                {/* BPM Tiny Controller */}
+                <div className="flex items-center bg-slate-100 rounded-full px-4 py-2 shadow-inner border-2 border-slate-200">
+                    <button onClick={() => adjustBpm(-10)} className="text-slate-400 hover:text-slate-700 p-2 active:scale-90">
+                        <span className="w-0 h-0 border-t-[8px] border-b-[8px] border-r-[12px] border-t-transparent border-b-transparent border-r-current block" />
+                    </button>
+                    <div className="w-24 text-center">
+                        <span className="text-xs text-slate-400 font-bold block -mb-1">BPM</span>
+                        <span className="text-2xl font-black text-slate-800 tabular-nums">{bpm}</span>
+                    </div>
+                    <button onClick={() => adjustBpm(10)} className="text-slate-400 hover:text-slate-700 p-2 active:scale-90">
+                        <span className="w-0 h-0 border-t-[8px] border-b-[8px] border-l-[12px] border-t-transparent border-b-transparent border-l-current block" />
+                    </button>
+                </div>
+
+                {/* Central Play Button */}
+                <button
+                    onClick={togglePlay}
+                    className={`
+                        w-20 h-20 rounded-full flex items-center justify-center text-3xl shadow-xl border-4 transition-all duration-300
+                        ${isPlaying ? 'bg-rose-50 border-rose-200 text-rose-500 shadow-rose-200' : 'bg-[#58CC02] border-[#46A302] text-white shadow-[#46A302]/50 hover:brightness-110 active:scale-95'}
+                    `}
+                >
+                    {isPlaying ? '⏸' : '▶'}
+                </button>
+
+                {/* Complete Button */}
+                <button onClick={onComplete} className="px-8 py-4 bg-blue-500 text-white rounded-2xl font-black text-lg shadow-[0_6px_0_rgba(37,99,235,1)] hover:brightness-110 active:translate-y-[6px] active:shadow-none transition-all">
+                    다음 레슨
+                </button>
+            </div>
+
+            {/* 3x16 Sequencer Grid */}
+            <div className="w-full bg-[#F8F9FA] p-6 rounded-3xl shadow-inner border-2 border-slate-100 mb-12 flex flex-col gap-4">
+                {renderGridRow('하이햇', selectedPattern.hihat, <Triangle size={32} fill="currentColor" strokeWidth={0} />, '#34A853')}
+                {renderGridRow('스네어', selectedPattern.snare, <Square size={28} fill="currentColor" strokeWidth={0} />, '#FBBC04')}
+                {renderGridRow('킥', selectedPattern.kick, <Circle size={32} fill="currentColor" strokeWidth={0} />, '#EA4335')}
+            </div>
+
+            {/* Bottom: Pattern Selector */}
+            <div className="w-full">
+                <div className="flex items-center gap-4 mb-4">
+                    <h3 className="font-black text-2xl text-slate-800">리듬 선택</h3>
+                    <div className="flex-1 h-1 bg-slate-100 rounded-full" />
+                </div>
+                <div className="grid grid-cols-4 gap-4 mb-4">
+                    {MULTI_PATTERNS.map((pattern, idx) => {
+                        const isSelected = selectedPatternIndex === idx;
+                        return (
+                            <button
+                                key={idx}
+                                onClick={() => {
+                                    setSelectedPatternIndex(idx);
+                                    if (!isPlaying) togglePlay();
+                                }}
+                                className={`
+                                    py-4 px-4 rounded-2xl border-4 transition-all text-center active:scale-95
+                                    ${isSelected
+                                        ? 'bg-blue-50 border-blue-500 shadow-md text-blue-700 font-black'
+                                        : 'bg-white border-slate-200 text-slate-600 font-bold hover:border-slate-300 hover:bg-slate-50'
+                                    }
+                                `}
+                            >
+                                {pattern.name}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Selected Pattern Description */}
+                <div className="bg-slate-100 rounded-xl p-4 text-center max-w-2xl mx-auto border-2 border-slate-200">
+                    <span className="font-bold text-slate-500 mr-2">💡 특징:</span>
+                    <span className="font-medium text-slate-700">{selectedPattern.desc}</span>
+                </div>
             </div>
         </div>
     );
