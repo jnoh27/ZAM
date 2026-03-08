@@ -8,19 +8,29 @@ interface SoundDrawProps {
 
 export const SoundDraw: React.FC<SoundDrawProps> = ({ onBack }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const synthRef = useRef<Tone.Synth | null>(null);
+  const synthRef = useRef<Tone.Sampler | null>(null);
   const isDrawing = useRef(false);
   const colorRef = useRef('#4285F4');
+  const lastNoteRef = useRef<number>(0);
 
   useEffect(() => {
-    const synth = new Tone.Synth({
-        oscillator: { type: 'sine' },
-        envelope: { attack: 0.1, decay: 0.2, sustain: 0.5, release: 1 }
-    }).toDestination();
     const delay = new Tone.FeedbackDelay("8n", 0.4).toDestination();
-    synth.connect(delay);
-    synthRef.current = synth;
-    return () => { synth.dispose(); delay.dispose(); };
+
+    const sampler = new Tone.Sampler({
+      urls: {
+        "A1": "A1.mp3",
+        "C2": "C2.mp3",
+        "E2": "E2.mp3",
+        "G2": "G2.mp3"
+      },
+      baseUrl: "/samples/casio/",
+      onload: () => {
+        synthRef.current = sampler;
+      }
+    }).connect(delay);
+    sampler.volume.value = -4;
+
+    return () => { sampler.dispose(); delay.dispose(); };
   }, []);
 
   const handleStart = async (e: React.PointerEvent) => {
@@ -33,39 +43,47 @@ export const SoundDraw: React.FC<SoundDrawProps> = ({ onBack }) => {
   };
 
   const handleMove = (e: React.PointerEvent) => {
-      if (!isDrawing.current) return;
-      e.preventDefault();
-      updateSoundAndDraw(e.clientX, e.clientY);
+    if (!isDrawing.current) return;
+    e.preventDefault();
+    updateSoundAndDraw(e.clientX, e.clientY);
   };
 
   const updateSoundAndDraw = (x: number, y: number) => {
-      if (!canvasRef.current || !synthRef.current) return;
-      const rect = canvasRef.current.getBoundingClientRect();
-      const rx = x - rect.left;
-      const ry = y - rect.top;
+    if (!canvasRef.current || !synthRef.current) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const rx = x - rect.left;
+    const ry = y - rect.top;
 
-      const freq = 100 + (1 - (ry / rect.height)) * 800;
+    const freq = 100 + (1 - (ry / rect.height)) * 800;
+
+    const currentMidi = Tone.Frequency(freq).toMidi();
+    const lastMidi = Tone.Frequency(lastNoteRef.current).toMidi();
+
+    if (Math.abs(currentMidi - lastMidi) >= 1) {
+      synthRef.current.triggerRelease(lastNoteRef.current);
       synthRef.current.triggerAttack(freq);
+      lastNoteRef.current = freq;
+    }
 
-      const ctx = canvasRef.current.getContext('2d');
-      if (ctx) {
-          ctx.beginPath();
-          ctx.arc(rx, ry, 30, 0, Math.PI * 2);
-          ctx.fillStyle = colorRef.current;
-          ctx.fill();
-      }
+    const ctx = canvasRef.current.getContext('2d');
+    if (ctx) {
+      ctx.beginPath();
+      ctx.arc(rx, ry, 30, 0, Math.PI * 2);
+      ctx.fillStyle = colorRef.current;
+      ctx.fill();
+    }
   };
 
   const handleEnd = () => {
-      isDrawing.current = false;
-      synthRef.current?.triggerRelease();
+    isDrawing.current = false;
+    synthRef.current?.releaseAll();
   };
 
   useEffect(() => {
-     if (canvasRef.current) {
-         canvasRef.current.width = canvasRef.current.offsetWidth;
-         canvasRef.current.height = canvasRef.current.offsetHeight;
-     }
+    if (canvasRef.current) {
+      canvasRef.current.width = canvasRef.current.offsetWidth;
+      canvasRef.current.height = canvasRef.current.offsetHeight;
+    }
   }, []);
 
   return (
@@ -75,32 +93,32 @@ export const SoundDraw: React.FC<SoundDrawProps> = ({ onBack }) => {
           <ArrowLeft size={32} strokeWidth={3} />
         </button>
         <h1 className="text-3xl font-black text-[#202124]">소리 그리기</h1>
-        <button 
-            onClick={() => {
-                const ctx = canvasRef.current?.getContext('2d');
-                ctx?.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height);
-            }} 
-            className="p-3 bg-[#EA4335] rounded-full text-white shadow-lg active:scale-90"
+        <button
+          onClick={() => {
+            const ctx = canvasRef.current?.getContext('2d');
+            ctx?.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height);
+          }}
+          className="p-3 bg-[#EA4335] rounded-full text-white shadow-lg active:scale-90"
         >
-            <RefreshCw size={32} strokeWidth={3} />
+          <RefreshCw size={32} strokeWidth={3} />
         </button>
       </header>
 
       <div className="flex-1 relative touch-none bg-white">
-         <canvas
-            ref={canvasRef}
-            className="w-full h-full cursor-crosshair touch-none"
-            onPointerDown={handleStart}
-            onPointerMove={handleMove}
-            onPointerUp={handleEnd}
-            onPointerLeave={handleEnd}
-         />
-         <div className="absolute top-10 left-10 pointer-events-none">
-             <p className="text-4xl font-black text-[#DADCE0] uppercase opacity-40">소리 놀이터</p>
-         </div>
-         <div className="absolute bottom-10 w-full text-center pointer-events-none">
-             <p className="inline-block px-10 py-4 bg-[#202124]/10 rounded-full text-2xl font-black text-[#202124]/40">손가락으로 그림을 그려보세요!</p>
-         </div>
+        <canvas
+          ref={canvasRef}
+          className="w-full h-full cursor-crosshair touch-none"
+          onPointerDown={handleStart}
+          onPointerMove={handleMove}
+          onPointerUp={handleEnd}
+          onPointerLeave={handleEnd}
+        />
+        <div className="absolute top-10 left-10 pointer-events-none">
+          <p className="text-4xl font-black text-[#DADCE0] uppercase opacity-40">소리 놀이터</p>
+        </div>
+        <div className="absolute bottom-10 w-full text-center pointer-events-none">
+          <p className="inline-block px-10 py-4 bg-[#202124]/10 rounded-full text-2xl font-black text-[#202124]/40">손가락으로 그림을 그려보세요!</p>
+        </div>
       </div>
     </div>
   );

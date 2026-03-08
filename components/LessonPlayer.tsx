@@ -3,9 +3,9 @@ import * as Tone from 'tone';
 import { ArrowLeft, Check, Volume2, ArrowRight, Star, Heart, Cloud, Sun, Music } from 'lucide-react';
 
 interface LessonPlayerProps {
-  lessonId: string;
-  onComplete: () => void;
-  onExit: () => void;
+    lessonId: string;
+    onComplete: () => void;
+    onExit: () => void;
 }
 
 type LessonStep = {
@@ -46,105 +46,108 @@ const LESSONS: Record<string, LessonStep[]> = {
 };
 
 export const LessonPlayer: React.FC<LessonPlayerProps> = ({ lessonId, onComplete, onExit }) => {
-  const [stepIndex, setStepIndex] = useState(0);
-  const [feedback, setFeedback] = useState<'idle' | 'success' | 'error'>('idle');
-  
-  // Audio Refs
-  const synthRef = useRef<Tone.PolySynth | null>(null);
-  const membraneRef = useRef<Tone.MembraneSynth | null>(null);
+    const [stepIndex, setStepIndex] = useState(0);
+    const [feedback, setFeedback] = useState<'idle' | 'success' | 'error'>('idle');
 
-  const steps = LESSONS[lessonId] || [];
-  const currentStep = steps[stepIndex];
-  const progress = ((stepIndex) / steps.length) * 100;
+    // Audio Refs
+    const synthRef = useRef<Tone.Sampler | null>(null);
+    const membraneRef = useRef<Tone.Sampler | null>(null);
 
-  useEffect(() => {
-    const synth = new Tone.PolySynth(Tone.Synth, {
-        envelope: { attack: 0.05, decay: 0.2, sustain: 0.3, release: 1 },
-        volume: -4
-    }).toDestination();
-    
-    const membrane = new Tone.MembraneSynth().toDestination();
-    
-    synthRef.current = synth;
-    membraneRef.current = membrane;
-    
-    return () => {
-        synth.dispose();
-        membrane.dispose();
+    const steps = LESSONS[lessonId] || [];
+    const currentStep = steps[stepIndex];
+    const progress = ((stepIndex) / steps.length) * 100;
+
+    useEffect(() => {
+        const casioSampler = new Tone.Sampler({
+            urls: { "C2": "C2.mp3", "G2": "G2.mp3" },
+            baseUrl: "/samples/casio/",
+            onload: () => { synthRef.current = casioSampler; }
+        }).toDestination();
+        casioSampler.volume.value = -4;
+
+        const drumSampler = new Tone.Sampler({
+            urls: { "C2": "kick.mp3" },
+            baseUrl: "/samples/505/",
+            onload: () => { membraneRef.current = drumSampler; }
+        }).toDestination();
+
+        return () => {
+            casioSampler.dispose();
+            drumSampler.dispose();
+        };
+    }, []);
+
+    const handleStepComplete = () => {
+        setFeedback('success');
+
+        // Success Sound
+        if (synthRef.current) {
+            const now = Tone.now();
+            synthRef.current.triggerAttackRelease(["C5", "E5", "G5", "C6"], "16n", now);
+        }
+
+        // Wait then Advance
+        setTimeout(() => {
+            setFeedback('idle');
+            if (stepIndex < steps.length - 1) {
+                setStepIndex(prev => prev + 1);
+            } else {
+                onComplete();
+            }
+        }, 1500);
     };
-  }, []);
 
-  const handleStepComplete = () => {
-      setFeedback('success');
-      
-      // Success Sound
-      if (synthRef.current) {
-           const now = Tone.now();
-           synthRef.current.triggerAttackRelease(["C5", "E5", "G5", "C6"], "16n", now);
-      }
+    const renderCurrentStep = () => {
+        if (!currentStep) return <div>Lesson Completed!</div>;
 
-      // Wait then Advance
-      setTimeout(() => {
-          setFeedback('idle');
-          if (stepIndex < steps.length - 1) {
-              setStepIndex(prev => prev + 1);
-          } else {
-              onComplete();
-          }
-      }, 1500);
-  };
+        switch (lessonId) {
+            case 'rhythm': return <RhythmGame step={currentStep} onComplete={handleStepComplete} membrane={membraneRef.current} />;
+            case 'pitch': return <PitchGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
+            case 'melody': return <MelodyGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
+            case 'harmony': return <HarmonyGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
+            case 'chords': return <ChordGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
+            default: return <div>Unknown Lesson</div>;
+        }
+    };
 
-  const renderCurrentStep = () => {
-      if (!currentStep) return <div>Lesson Completed!</div>;
-
-      switch(lessonId) {
-          case 'rhythm': return <RhythmGame step={currentStep} onComplete={handleStepComplete} membrane={membraneRef.current} />;
-          case 'pitch': return <PitchGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
-          case 'melody': return <MelodyGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
-          case 'harmony': return <HarmonyGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
-          case 'chords': return <ChordGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
-          default: return <div>Unknown Lesson</div>;
-      }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col animate-slide-up">
-        {/* Header */}
-        <div className="p-4 flex items-center gap-4 border-b border-slate-100 bg-white">
-            <button onClick={onExit} className="p-2 hover:bg-slate-100 rounded-full transition-colors active:scale-95">
-                <ArrowLeft size={28} className="text-slate-400" />
-            </button>
-            <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden">
-                <div 
-                    className="h-full bg-[#58CC02] transition-all duration-700 ease-out"
-                    style={{ width: `${progress}%` }}
-                />
+    return (
+        <div className="fixed inset-0 bg-white z-50 flex flex-col animate-slide-up">
+            {/* Header */}
+            <div className="p-4 flex items-center gap-4 border-b border-slate-100 bg-white">
+                <button onClick={onExit} className="p-2 hover:bg-slate-100 rounded-full transition-colors active:scale-95">
+                    <ArrowLeft size={28} className="text-slate-400" />
+                </button>
+                <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-[#58CC02] transition-all duration-700 ease-out"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
             </div>
+
+            {/* Content Area */}
+            <div className="flex-1 flex flex-col items-center justify-center p-6 overflow-y-auto w-full max-w-2xl mx-auto">
+                <div key={stepIndex} className="w-full animate-slide-in-right">
+                    {renderCurrentStep()}
+                </div>
+            </div>
+
+            {/* Success Overlay */}
+            {feedback === 'success' && (
+                <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-[#58CC02] text-white px-12 py-8 rounded-[32px] shadow-2xl animate-pop-in flex flex-col items-center gap-4">
+                        <Check size={80} strokeWidth={4} className="animate-bounce" />
+                        <span className="text-4xl font-black">참 잘했어요!</span>
+                    </div>
+                </div>
+            )}
         </div>
-
-        {/* Content Area */}
-        <div className="flex-1 flex flex-col items-center justify-center p-6 overflow-y-auto w-full max-w-2xl mx-auto">
-            <div key={stepIndex} className="w-full animate-slide-in-right">
-                {renderCurrentStep()}
-            </div>
-        </div>
-
-        {/* Success Overlay */}
-        {feedback === 'success' && (
-            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm animate-fade-in">
-                 <div className="bg-[#58CC02] text-white px-12 py-8 rounded-[32px] shadow-2xl animate-pop-in flex flex-col items-center gap-4">
-                     <Check size={80} strokeWidth={4} className="animate-bounce" />
-                     <span className="text-4xl font-black">참 잘했어요!</span>
-                 </div>
-            </div>
-        )}
-    </div>
-  );
+    );
 };
 
 // --- GAME COMPONENTS ---
 
-const RhythmGame: React.FC<{step: LessonStep, onComplete: () => void, membrane: any}> = ({step, onComplete, membrane}) => {
+const RhythmGame: React.FC<{ step: LessonStep, onComplete: () => void, membrane: any }> = ({ step, onComplete, membrane }) => {
     const [taps, setTaps] = useState(0);
 
     // Reset taps on new step
@@ -152,11 +155,11 @@ const RhythmGame: React.FC<{step: LessonStep, onComplete: () => void, membrane: 
 
     const playDemo = async () => {
         await Tone.start();
-        if(!membrane) return;
+        if (!membrane) return;
         const now = Tone.now();
         // Play 4 beats
-        for(let i=0; i<4; i++) {
-            membrane.triggerAttackRelease("C2", "8n", now + i*0.5);
+        for (let i = 0; i < 4; i++) {
+            membrane.triggerAttackRelease("C2", "8n", now + i * 0.5);
         }
     };
 
@@ -165,7 +168,7 @@ const RhythmGame: React.FC<{step: LessonStep, onComplete: () => void, membrane: 
             <div className="text-center flex flex-col items-center gap-8">
                 <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
                 <p className="text-xl text-slate-500 font-medium animate-slide-up delay-100">{step.description}</p>
-                <button 
+                <button
                     onClick={() => { playDemo(); setTimeout(onComplete, 2500); }}
                     className="w-32 h-32 bg-[#4285F4] rounded-full text-white shadow-xl active:scale-95 transition-all flex items-center justify-center hover:scale-105 animate-pop-in delay-200"
                 >
@@ -183,7 +186,7 @@ const RhythmGame: React.FC<{step: LessonStep, onComplete: () => void, membrane: 
                     <div key={i} className={`w-8 h-8 rounded-full transition-all duration-300 ${i < taps ? 'bg-[#58CC02] scale-125' : 'bg-slate-200'}`} />
                 ))}
             </div>
-            <button 
+            <button
                 onClick={async () => {
                     await Tone.start();
                     membrane?.triggerAttackRelease("C2", "8n");
@@ -201,7 +204,7 @@ const RhythmGame: React.FC<{step: LessonStep, onComplete: () => void, membrane: 
     );
 };
 
-const PitchGame: React.FC<{step: LessonStep, onComplete: () => void, synth: any}> = ({step, onComplete, synth}) => {
+const PitchGame: React.FC<{ step: LessonStep, onComplete: () => void, synth: any }> = ({ step, onComplete, synth }) => {
     const playLow = async () => { await Tone.start(); synth?.triggerAttackRelease("C3", "2n"); };
     const playHigh = async () => { await Tone.start(); synth?.triggerAttackRelease("C6", "2n"); };
 
@@ -232,16 +235,16 @@ const PitchGame: React.FC<{step: LessonStep, onComplete: () => void, synth: any}
             <button onClick={async () => { await Tone.start(); step.target === 'high' ? playHigh() : playLow(); }} className="p-4 bg-slate-100 rounded-full hover:bg-slate-200 active:scale-95 transition-all">
                 <Volume2 size={40} className="text-slate-600" />
             </button>
-            
+
             <div className="grid grid-cols-2 gap-6 w-full max-w-md animate-slide-up delay-100">
-                <button 
-                    onClick={() => { playHigh(); if(step.target === 'high') onComplete(); }}
+                <button
+                    onClick={() => { playHigh(); if (step.target === 'high') onComplete(); }}
                     className="aspect-square bg-white border-4 border-sky-100 rounded-3xl hover:border-sky-300 active:scale-95 transition-all flex items-center justify-center text-6xl shadow-sm hover:shadow-md"
                 >
                     🐦
                 </button>
-                <button 
-                    onClick={() => { playLow(); if(step.target === 'low') onComplete(); }}
+                <button
+                    onClick={() => { playLow(); if (step.target === 'low') onComplete(); }}
                     className="aspect-square bg-white border-4 border-indigo-100 rounded-3xl hover:border-indigo-300 active:scale-95 transition-all flex items-center justify-center text-6xl shadow-sm hover:shadow-md"
                 >
                     🐘
@@ -251,7 +254,7 @@ const PitchGame: React.FC<{step: LessonStep, onComplete: () => void, synth: any}
     );
 };
 
-const MelodyGame: React.FC<{step: LessonStep, onComplete: () => void, synth: any}> = ({step, onComplete, synth}) => {
+const MelodyGame: React.FC<{ step: LessonStep, onComplete: () => void, synth: any }> = ({ step, onComplete, synth }) => {
     const [playedNotes, setPlayedNotes] = useState<string[]>([]);
     const targetNotes = Array.isArray(step.target) ? step.target : [step.target];
 
@@ -260,7 +263,7 @@ const MelodyGame: React.FC<{step: LessonStep, onComplete: () => void, synth: any
     const handleNoteClick = async (note: string) => {
         await Tone.start();
         synth?.triggerAttackRelease(note, "8n");
-        
+
         // If it's the next correct note
         const nextIndex = playedNotes.length;
         if (targetNotes[nextIndex] === note) {
@@ -284,7 +287,7 @@ const MelodyGame: React.FC<{step: LessonStep, onComplete: () => void, synth: any
         <div className="flex flex-col items-center gap-8 w-full">
             <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
             <p className="text-slate-500 font-medium animate-slide-up delay-100">{step.description}</p>
-            
+
             {/* Progress Visualization */}
             <div className="flex gap-2 mb-4 animate-fade-in delay-200">
                 {targetNotes.map((n: string, i: number) => (
@@ -314,7 +317,7 @@ const MelodyGame: React.FC<{step: LessonStep, onComplete: () => void, synth: any
     );
 };
 
-const HarmonyGame: React.FC<{step: LessonStep, onComplete: () => void, synth: any}> = ({step, onComplete, synth}) => {
+const HarmonyGame: React.FC<{ step: LessonStep, onComplete: () => void, synth: any }> = ({ step, onComplete, synth }) => {
     const [activeVoices, setActiveVoices] = useState<number[]>([]);
 
     const playMono = async () => { await Tone.start(); synth?.triggerAttackRelease(["C4"], "1n"); };
@@ -327,54 +330,54 @@ const HarmonyGame: React.FC<{step: LessonStep, onComplete: () => void, synth: an
 
     const toggleVoice = async (index: number) => {
         await Tone.start();
-        
+
         // Always play the note when clicked
         synth?.triggerAttackRelease(VOICES[index].note, "2n");
 
         if (!activeVoices.includes(index)) {
-             const newActive = [...activeVoices, index];
-             setActiveVoices(newActive);
-             
-             // Check completion
-             if (newActive.length === 3) {
-                 setTimeout(() => {
-                     // Play full chord as reward
-                     synth?.triggerAttackRelease(["C4", "E4", "G4", "C5"], "1n");
-                     onComplete();
-                 }, 600);
-             }
+            const newActive = [...activeVoices, index];
+            setActiveVoices(newActive);
+
+            // Check completion
+            if (newActive.length === 3) {
+                setTimeout(() => {
+                    // Play full chord as reward
+                    synth?.triggerAttackRelease(["C4", "E4", "G4", "C5"], "1n");
+                    onComplete();
+                }, 600);
+            }
         }
     };
 
     if (step.type === 'listen') {
-         return (
-             <div className="text-center flex flex-col items-center gap-8">
-                 <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
-                 <p className="text-xl text-slate-500 animate-slide-up delay-100">{step.description}</p>
-                 <button 
-                     onClick={() => { 
-                         playMono();
-                         setTimeout(onComplete, 2500); 
-                     }}
-                     className="w-32 h-32 bg-[#4285F4] rounded-full text-white shadow-xl active:scale-95 flex items-center justify-center animate-pop-in delay-200 hover:scale-105 transition-transform"
-                 >
-                     <span className="text-6xl">👤</span>
-                 </button>
-                 <p className="text-slate-400 font-bold">눌러서 들어보세요</p>
-             </div>
-         );
+        return (
+            <div className="text-center flex flex-col items-center gap-8">
+                <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
+                <p className="text-xl text-slate-500 animate-slide-up delay-100">{step.description}</p>
+                <button
+                    onClick={() => {
+                        playMono();
+                        setTimeout(onComplete, 2500);
+                    }}
+                    className="w-32 h-32 bg-[#4285F4] rounded-full text-white shadow-xl active:scale-95 flex items-center justify-center animate-pop-in delay-200 hover:scale-105 transition-transform"
+                >
+                    <span className="text-6xl">👤</span>
+                </button>
+                <p className="text-slate-400 font-bold">눌러서 들어보세요</p>
+            </div>
+        );
     }
 
     return (
         <div className="text-center flex flex-col items-center gap-8">
             <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
             <p className="text-xl text-slate-500 animate-slide-up delay-100">{step.description}</p>
-            
+
             <div className="flex justify-center gap-4 w-full max-w-md animate-slide-up delay-200">
-                 {VOICES.map((voice, idx) => {
-                     const isActive = activeVoices.includes(idx);
-                     return (
-                        <button 
+                {VOICES.map((voice, idx) => {
+                    const isActive = activeVoices.includes(idx);
+                    return (
+                        <button
                             key={idx}
                             onClick={() => toggleVoice(idx)}
                             className={`
@@ -387,8 +390,8 @@ const HarmonyGame: React.FC<{step: LessonStep, onComplete: () => void, synth: an
                             </span>
                             <span className={`font-bold ${isActive ? 'text-white' : 'text-slate-500'}`}>{voice.label}</span>
                         </button>
-                     );
-                 })}
+                    );
+                })}
             </div>
             <div className="h-8 flex gap-2">
                 {[0, 1, 2].map(i => (
@@ -399,28 +402,28 @@ const HarmonyGame: React.FC<{step: LessonStep, onComplete: () => void, synth: an
     );
 };
 
-const ChordGame: React.FC<{step: LessonStep, onComplete: () => void, synth: any}> = ({step, onComplete, synth}) => {
-    
+const ChordGame: React.FC<{ step: LessonStep, onComplete: () => void, synth: any }> = ({ step, onComplete, synth }) => {
+
     const playMajor = async () => { await Tone.start(); synth?.triggerAttackRelease(["C4", "E4", "G4"], "1n"); };
     const playMinor = async () => { await Tone.start(); synth?.triggerAttackRelease(["C4", "Eb4", "G4"], "1n"); };
 
     if (step.type === 'listen') {
         return (
             <div className="text-center flex flex-col items-center gap-8">
-                 <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
-                 <p className="text-xl text-slate-500 animate-slide-up delay-100">{step.description}</p>
-                 <div className="w-40 h-40 flex items-center justify-center animate-pop-in delay-200">
+                <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
+                <p className="text-xl text-slate-500 animate-slide-up delay-100">{step.description}</p>
+                <div className="w-40 h-40 flex items-center justify-center animate-pop-in delay-200">
                     {step.demoType === 'major' ? <Sun size={120} className="text-amber-400 animate-spin-slow" /> : <Cloud size={120} className="text-slate-400 animate-float" />}
-                 </div>
-                 <button 
-                     onClick={() => { 
-                         if(step.demoType === 'major') playMajor(); else playMinor();
-                         setTimeout(onComplete, 2000); 
-                     }}
-                     className="px-10 py-4 bg-[#58CC02] text-white rounded-2xl font-black text-xl shadow-lg hover:scale-105 active:scale-95 transition-transform animate-slide-up delay-300"
-                 >
-                     들어보기
-                 </button>
+                </div>
+                <button
+                    onClick={() => {
+                        if (step.demoType === 'major') playMajor(); else playMinor();
+                        setTimeout(onComplete, 2000);
+                    }}
+                    className="px-10 py-4 bg-[#58CC02] text-white rounded-2xl font-black text-xl shadow-lg hover:scale-105 active:scale-95 transition-transform animate-slide-up delay-300"
+                >
+                    들어보기
+                </button>
             </div>
         );
     }
@@ -432,20 +435,20 @@ const ChordGame: React.FC<{step: LessonStep, onComplete: () => void, synth: any}
                 <Volume2 size={32} />
             </button>
             <div className="grid grid-cols-2 gap-6 w-full max-w-md animate-slide-up delay-100">
-                 <button 
-                    onClick={() => { playMajor(); if(step.target==='major') onComplete(); }}
+                <button
+                    onClick={() => { playMajor(); if (step.target === 'major') onComplete(); }}
                     className="h-48 bg-amber-50 border-4 border-amber-200 rounded-3xl hover:bg-amber-100 active:scale-95 transition-all flex flex-col items-center justify-center gap-2 group"
-                 >
-                     <Sun size={64} className="text-amber-500 group-hover:rotate-12 transition-transform" />
-                     <span className="font-bold text-amber-700">밝은 느낌</span>
-                 </button>
-                 <button 
-                    onClick={() => { playMinor(); if(step.target==='minor') onComplete(); }}
+                >
+                    <Sun size={64} className="text-amber-500 group-hover:rotate-12 transition-transform" />
+                    <span className="font-bold text-amber-700">밝은 느낌</span>
+                </button>
+                <button
+                    onClick={() => { playMinor(); if (step.target === 'minor') onComplete(); }}
                     className="h-48 bg-slate-50 border-4 border-slate-200 rounded-3xl hover:bg-slate-100 active:scale-95 transition-all flex flex-col items-center justify-center gap-2 group"
-                 >
-                     <Cloud size={64} className="text-slate-400 group-hover:scale-110 transition-transform" />
-                     <span className="font-bold text-slate-600">슬픈 느낌</span>
-                 </button>
+                >
+                    <Cloud size={64} className="text-slate-400 group-hover:scale-110 transition-transform" />
+                    <span className="font-bold text-slate-600">슬픈 느낌</span>
+                </button>
             </div>
         </div>
     );
