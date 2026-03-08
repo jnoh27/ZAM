@@ -37,6 +37,9 @@ const LESSONS: Record<string, LessonStep[]> = {
     'rhythm-pattern': [
         { type: 'play', title: '드럼 머신 스튜디오', description: '킥, 스네어, 하이햇이 조합된 16스텝 시퀀서로 리듬을 파악해보세요.' }
     ],
+    'rhythm-master': [
+        { type: 'play', title: '나만의 리듬 만들기', description: '빈 그리드 위에 직접 창의적인 리듬을 만들어보세요!' }
+    ],
     'pitch': [
         { type: 'listen', title: '높은 소리와 낮은 소리', description: '새소리와 코끼리 소리를 비교해봐요' },
         { type: 'choose', title: '높은 소리(새)는 어디있나요?', target: 'high', options: ['high', 'low'] },
@@ -112,13 +115,13 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({ lessonId, onComplete
 
         switch (lessonId) {
             case 'rhythm-intro':
-            case 'rhythm-master':
                 return <RhythmGame step={currentStep} onComplete={handleStepComplete} membrane={membraneRef.current} />;
+            case 'rhythm-master':
+                return <RhythmMasterGame step={currentStep} onComplete={handleStepComplete} />;
             case 'rhythm-beat':
                 return <RhythmBeatGame step={currentStep} onComplete={handleStepComplete} />;
             case 'rhythm-pattern':
                 return <RhythmMachineGame step={currentStep} onComplete={handleStepComplete} />;
-                return <RhythmBeatGame step={currentStep} onComplete={handleStepComplete} />;
             case 'pitch': return <PitchGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
             case 'melody': return <MelodyGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
             case 'harmony': return <HarmonyGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
@@ -577,6 +580,178 @@ const RhythmMachineGame: React.FC<{ step: LessonStep, onComplete: () => void }> 
                     <span className="font-medium text-slate-700">{selectedPattern.desc}</span>
                 </div>
             </div>
+        </div>
+    );
+};
+
+const RhythmMasterGame: React.FC<{ step: LessonStep, onComplete: () => void }> = ({ step, onComplete }) => {
+    const [bpm, setBpm] = useState(120);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [currentBeat, setCurrentBeat] = useState(-1);
+
+    // Grid state for Hi-hat (row 0), Snare (row 1), Kick (row 2)
+    const [grid, setGrid] = useState<boolean[][]>(
+        Array(3).fill(null).map(() => Array(16).fill(false))
+    );
+
+    // Audio Refs
+    const gridRef = useRef(grid);
+    const kickRef = useRef<Tone.MembraneSynth | null>(null);
+    const snareRef = useRef<Tone.NoiseSynth | null>(null);
+    const hihatRef = useRef<Tone.MetalSynth | null>(null);
+    const transportEventRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        gridRef.current = grid;
+    }, [grid]);
+
+    // Setup Synths
+    useEffect(() => {
+        kickRef.current = new Tone.MembraneSynth({ pitchDecay: 0.05, octaves: 4, oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 } }).toDestination();
+        snareRef.current = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.001, decay: 0.2, sustain: 0 } }).toDestination();
+        hihatRef.current = new Tone.MetalSynth({ envelope: { attack: 0.001, decay: 0.1, release: 0.01 }, harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5 }).toDestination();
+        hihatRef.current.volume.value = -12;
+
+        return () => {
+            kickRef.current?.dispose();
+            snareRef.current?.dispose();
+            hihatRef.current?.dispose();
+            if (transportEventRef.current !== null) Tone.Transport.clear(transportEventRef.current);
+            Tone.Transport.stop();
+            Tone.Transport.cancel(0);
+        };
+    }, []);
+
+    // Toggle Play State
+    const togglePlay = async () => {
+        if (!isPlaying) {
+            await Tone.start();
+            Tone.Transport.bpm.value = bpm;
+
+            let stepCount = 0;
+            if (transportEventRef.current !== null) Tone.Transport.clear(transportEventRef.current);
+
+            transportEventRef.current = Tone.Transport.scheduleRepeat((time) => {
+                const stepIdx = stepCount % 16;
+                const currentGrid = gridRef.current;
+
+                if (currentGrid[0][stepIdx]) hihatRef.current?.triggerAttackRelease(250, "32n", time, 0.3);
+                if (currentGrid[1][stepIdx]) snareRef.current?.triggerAttackRelease("16n", time);
+                if (currentGrid[2][stepIdx]) kickRef.current?.triggerAttackRelease("C1", "16n", time);
+
+                Tone.Draw.schedule(() => { setCurrentBeat(stepIdx); }, time);
+                stepCount++;
+            }, "16n");
+
+            Tone.Transport.start();
+            setIsPlaying(true);
+        } else {
+            Tone.Transport.pause();
+            setIsPlaying(false);
+            setCurrentBeat(-1);
+        }
+    };
+
+    // Toggle single drum hit
+    const toggleStep = async (rowIndex: number, colIndex: number) => {
+        const newGrid = [...grid];
+        newGrid[rowIndex] = [...newGrid[rowIndex]];
+        newGrid[rowIndex][colIndex] = !newGrid[rowIndex][colIndex];
+        setGrid(newGrid);
+
+        // Previews sound when clicking
+        if (newGrid[rowIndex][colIndex] && !isPlaying) {
+            await Tone.start();
+            if (rowIndex === 0) hihatRef.current?.triggerAttackRelease(250, "32n", undefined, 0.3);
+            else if (rowIndex === 1) snareRef.current?.triggerAttackRelease("16n");
+            else if (rowIndex === 2) kickRef.current?.triggerAttackRelease("C1", "16n");
+        }
+    };
+
+    const adjustBpm = (amount: number) => {
+        setBpm(prev => {
+            const newBpm = Math.max(50, Math.min(250, prev + amount));
+            Tone.Transport.bpm.value = newBpm;
+            return newBpm;
+        });
+    };
+
+    const renderGridRow = (rowIndex: number, iconNode: React.ReactNode, rowColor: string) => (
+        <div className="flex items-center gap-4 w-full">
+            <div
+                className="w-16 h-16 rounded-full flex items-center justify-center text-white shadow-lg shrink-0 relative"
+                style={{ backgroundColor: rowColor }}
+            >
+                <div>{iconNode}</div>
+            </div>
+            <div className="flex-1 flex gap-2 h-16">
+                {grid[rowIndex].map((isActive, colIndex) => {
+                    const isCurrentStep = currentBeat === colIndex;
+                    const isBigBeat = colIndex % 4 === 0;
+
+                    return (
+                        <button
+                            key={colIndex}
+                            onClick={() => toggleStep(rowIndex, colIndex)}
+                            className={`
+                                flex-1 rounded-xl transition-all duration-75 relative border-b-4
+                                ${isActive ? 'shadow-md translate-y-[-2px]' : 'bg-white border-[#DADCE0] hover:bg-[#F1F3F4]'}
+                                ${isCurrentStep ? 'ring-2 ring-indigo-400 z-10' : ''}
+                                ${isBigBeat && !isActive ? 'bg-[#E8EAED]' : ''}
+                            `}
+                            style={{
+                                backgroundColor: isActive ? rowColor : undefined,
+                                borderColor: isActive ? 'rgba(0,0,0,0.1)' : undefined
+                            }}
+                        >
+                            {isCurrentStep && isActive && <div className="absolute inset-0 bg-white/30 rounded-xl animate-ping" />}
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="flex flex-col items-center w-full max-w-[1200px] mx-auto min-h-[700px] px-8 py-8 animate-fade-in relative z-10">
+            {/* Top Bar: BPM Controller & Play */}
+            <div className="flex items-center justify-between w-full mb-8">
+                <div className="flex items-center bg-slate-100 rounded-full px-4 py-2 shadow-inner border-2 border-slate-200">
+                    <button onClick={() => adjustBpm(-10)} className="text-slate-400 hover:text-slate-700 p-2 active:scale-90">
+                        <span className="w-0 h-0 border-t-[8px] border-b-[8px] border-r-[12px] border-t-transparent border-b-transparent border-r-current block" />
+                    </button>
+                    <div className="w-24 text-center">
+                        <span className="text-xs text-slate-400 font-bold block -mb-1">BPM</span>
+                        <span className="text-2xl font-black text-slate-800 tabular-nums">{bpm}</span>
+                    </div>
+                    <button onClick={() => adjustBpm(10)} className="text-slate-400 hover:text-slate-700 p-2 active:scale-90">
+                        <span className="w-0 h-0 border-t-[8px] border-b-[8px] border-l-[12px] border-t-transparent border-b-transparent border-l-current block" />
+                    </button>
+                </div>
+
+                <button
+                    onClick={togglePlay}
+                    className={`
+                        w-20 h-20 rounded-full flex items-center justify-center text-3xl shadow-xl border-4 transition-all duration-300
+                        ${isPlaying ? 'bg-rose-50 border-rose-200 text-rose-500 shadow-rose-200' : 'bg-[#58CC02] border-[#46A302] text-white shadow-[#46A302]/50 hover:brightness-110 active:scale-95'}
+                    `}
+                >
+                    {isPlaying ? '⏸' : '▶'}
+                </button>
+
+                <button onClick={onComplete} className="px-8 py-4 bg-blue-500 text-white rounded-2xl font-black text-lg shadow-[0_6px_0_rgba(37,99,235,1)] hover:brightness-110 active:translate-y-[6px] active:shadow-none transition-all">
+                    레슨 완료
+                </button>
+            </div>
+
+            {/* 3x16 Sequencer Grid Editable */}
+            <div className="w-full bg-[#F8F9FA] p-6 rounded-3xl shadow-inner border-2 border-slate-100 flex flex-col gap-4">
+                {renderGridRow(0, <Triangle size={32} fill="currentColor" strokeWidth={0} />, '#34A853')}
+                {renderGridRow(1, <Square size={28} fill="currentColor" strokeWidth={0} />, '#FBBC04')}
+                {renderGridRow(2, <Circle size={32} fill="currentColor" strokeWidth={0} />, '#EA4335')}
+            </div>
+
+            <p className="mt-8 text-slate-500 font-bold text-center">빈칸을 클릭해서 소리를 넣거나 빼보세요!</p>
         </div>
     );
 };
