@@ -31,7 +31,9 @@ const LESSONS: Record<string, LessonStep[]> = {
         { type: 'tap', title: '두 번째 도전!', description: '속도가 무작위로 바뀝니다. 잘 듣고 따라오세요', target: 4 },
         { type: 'tap', title: '마지막 도전!', description: '이제 박자의 고수! 완벽하게 맞춰볼까요?', target: 4 }
     ],
-    'rhythm-beat': [],
+    'rhythm-beat': [
+        { type: 'play', title: '다양한 리듬 체험', description: '가장 흔하게 쓰이는 8가지 리듬 패턴을 직접 들어보세요.' }
+    ],
     'pitch': [
         { type: 'listen', title: '높은 소리와 낮은 소리', description: '새소리와 코끼리 소리를 비교해봐요' },
         { type: 'choose', title: '높은 소리(새)는 어디있나요?', target: 'high', options: ['high', 'low'] },
@@ -107,10 +109,11 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({ lessonId, onComplete
 
         switch (lessonId) {
             case 'rhythm-intro':
-            case 'rhythm-beat':
             case 'rhythm-pattern':
             case 'rhythm-master':
                 return <RhythmGame step={currentStep} onComplete={handleStepComplete} membrane={membraneRef.current} />;
+            case 'rhythm-beat':
+                return <RhythmBeatGame step={currentStep} onComplete={handleStepComplete} />;
             case 'pitch': return <PitchGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
             case 'melody': return <MelodyGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
             case 'harmony': return <HarmonyGame step={currentStep} onComplete={handleStepComplete} synth={synthRef.current} />;
@@ -135,8 +138,8 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({ lessonId, onComplete
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 flex flex-col items-center justify-center p-6 overflow-y-auto w-full max-w-2xl mx-auto">
-                <div key={stepIndex} className="w-full animate-slide-in-right">
+            <div className="flex-1 flex flex-col items-center justify-center p-6 overflow-y-auto w-full h-full max-w-[1600px] mx-auto">
+                <div key={stepIndex} className="w-full h-full flex flex-col items-center justify-center animate-slide-in-right">
                     {renderCurrentStep()}
                 </div>
             </div>
@@ -155,6 +158,213 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({ lessonId, onComplete
 };
 
 // --- GAME COMPONENTS ---
+
+const PATTERNS = [
+    { name: '정박', desc: 'EDM, 하우스의 표준. 모든 박자에 킥이 들어감.', kick: [0, 4, 8, 12] },
+    { name: '투 비트', desc: '단순하고 경쾌함. 펑크 락이나 트로트의 기초.', kick: [0, 8] },
+    { name: '8비트 기본', desc: '팝/락의 정석. "쿵 쿵 팍 쿵" 하는 안정적인 추진력.', kick: [0, 2, 8, 10] },
+    { name: '저지 클럽', desc: '"쿵-쿵-쿵쿵쿵". 2박 뒤부터 쪼개지는 3연타가 핵심.', kick: [0, 4, 8, 11, 14] },
+    { name: '엇박 강조', desc: '2박 뒷박(앤)을 강조해 펑키하고 쫄깃한 느낌을 줌.', kick: [0, 6, 8] },
+    { name: '셔플/스윙', desc: '셋잇단음표 기반. 블루스나 바운스 있는 댄스곡.', kick: [0, 3, 4, 7, 8, 11, 12, 15] },
+    { name: '트랩/힙합', desc: '엇박과 정박을 섞어 묵직하고 트렌디한 무게감 형성.', kick: [0, 3, 8, 12] },
+    { name: '보사노바', desc: '라틴 리듬의 정수. 세련된 당김음으로 부드러운 분위기.', kick: [0, 6, 8, 14] },
+];
+
+const RhythmBeatGame: React.FC<{ step: LessonStep, onComplete: () => void }> = ({ step, onComplete }) => {
+    const [bpm, setBpm] = useState(120);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [selectedPatternIndex, setSelectedPatternIndex] = useState(0);
+    const [currentBeat, setCurrentBeat] = useState(-1);
+
+    // Audio Refs
+    const kickRef = useRef<Tone.MembraneSynth | null>(null);
+    const transportEventRef = useRef<number | null>(null);
+
+    // Dynamic ref to current pattern
+    const selectedPatternRef = useRef(PATTERNS[0]);
+    useEffect(() => {
+        selectedPatternRef.current = PATTERNS[selectedPatternIndex];
+    }, [selectedPatternIndex]);
+
+    // Setup Synths
+    useEffect(() => {
+        kickRef.current = new Tone.MembraneSynth().toDestination();
+        return () => {
+            kickRef.current?.dispose();
+            if (transportEventRef.current !== null) {
+                Tone.Transport.clear(transportEventRef.current);
+            }
+            Tone.Transport.stop();
+            Tone.Transport.cancel(0);
+        };
+    }, []);
+
+    // Toggle Play State
+    const togglePlay = async () => {
+        if (!isPlaying) {
+            await Tone.start();
+            Tone.Transport.bpm.value = bpm;
+
+            let stepCount = 0;
+            if (transportEventRef.current !== null) {
+                Tone.Transport.clear(transportEventRef.current);
+            }
+
+            transportEventRef.current = Tone.Transport.scheduleRepeat((time) => {
+                const stepIdx = stepCount % 16;
+                const pattern = selectedPatternRef.current;
+
+                if (pattern.kick.includes(stepIdx)) {
+                    kickRef.current?.triggerAttackRelease("C1", "16n", time);
+                }
+
+                Tone.Draw.schedule(() => {
+                    setCurrentBeat(stepIdx);
+                }, time);
+
+                stepCount++;
+            }, "16n");
+
+            Tone.Transport.start();
+            setIsPlaying(true);
+        } else {
+            Tone.Transport.pause();
+            setIsPlaying(false);
+            setCurrentBeat(-1);
+        }
+    };
+
+    // Handle BPM Adjustments
+    const adjustBpm = (amount: number) => {
+        setBpm(prev => {
+            const newBpm = Math.max(50, Math.min(250, prev + amount));
+            Tone.Transport.bpm.value = newBpm;
+            return newBpm;
+        });
+    };
+
+    const selectedPattern = PATTERNS[selectedPatternIndex];
+
+    return (
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-24 w-full max-w-[1400px] mx-auto min-h-[700px] px-12 py-12 animate-fade-in">
+            {/* Left Side: Controls & Metronome */}
+            <div className="flex flex-col items-center justify-between w-[450px] h-[600px] shrink-0 relative pt-4">
+
+                {/* Play Button - Normal Rounded Square */}
+                <button
+                    onClick={togglePlay}
+                    className="group relative z-30 mt-4 active:scale-95 transition-transform flex flex-col items-center"
+                >
+                    <div className={`w-32 h-32 rounded-3xl flex items-center justify-center text-6xl shadow-xl border-4 transition-all duration-300 ${isPlaying ? 'bg-rose-50 border-rose-200 text-rose-500 shadow-rose-200' : 'bg-blue-50 border-blue-200 text-blue-500 hover:bg-blue-100 shadow-blue-200'
+                        }`}>
+                        {isPlaying ? '⏸' : '▶'}
+                    </div>
+                </button>
+
+                {/* Big Circle BPM Controller */}
+                <div className="relative flex flex-col items-center justify-center w-[300px] h-[300px] my-auto">
+                    {/* Visual Pulse Layer */}
+                    <div className={`absolute inset-0 border-[16px] border-blue-400/20 rounded-full scale-[1.3] transition-all duration-500 -z-10 ${isPlaying ? 'opacity-100 animate-ping-slow' : 'opacity-0 scale-100'}`} />
+
+                    {/* Main UI Circle */}
+                    <div className="absolute inset-0 rounded-full border-[6px] border-slate-200 bg-white shadow-2xl flex flex-col items-center justify-between z-20 py-8">
+                        {/* Adjust Up */}
+                        <button onClick={() => adjustBpm(10)} className="w-32 h-16 flex items-center justify-center text-slate-300 hover:text-slate-600 active:scale-90 transition-all">
+                            <span className="w-0 h-0 border-l-[20px] border-r-[20px] border-b-[25px] border-l-transparent border-r-transparent border-b-current block" />
+                        </button>
+
+                        <div className="flex flex-col items-center justify-center -mt-2">
+                            <span className="text-slate-400 font-bold tracking-widest text-sm uppercase -mb-3">Tempo</span>
+                            <span className="text-[100px] font-black text-slate-800 tabular-nums leading-none tracking-tighter">{bpm}</span>
+                        </div>
+
+                        {/* Adjust Down */}
+                        <button onClick={() => adjustBpm(-10)} className="w-32 h-16 flex items-center justify-center text-slate-300 hover:text-slate-600 active:scale-90 transition-all">
+                            <span className="w-0 h-0 border-l-[20px] border-r-[20px] border-t-[25px] border-l-transparent border-r-transparent border-t-current block" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* 4 Lights at the bottom */}
+                <div className="flex gap-8 items-center justify-center w-full mt-4 h-20">
+                    {[...Array(4)].map((_, i) => {
+                        const activeBeatIndex = Math.floor(currentBeat / 4);
+                        const isLightOn = currentBeat !== -1 && activeBeatIndex === i;
+
+                        return (
+                            <div
+                                key={i}
+                                className={`
+                                    w-10 h-10 rounded-full border-4 transition-all duration-100 ease-in-out
+                                    ${isLightOn
+                                        ? 'bg-blue-500 border-blue-400 shadow-[0_0_25px_8px_rgba(59,130,246,0.6)] scale-[1.15]'
+                                        : 'bg-slate-100 border-slate-300 shadow-inner scale-100'
+                                    }
+                                `}
+                            />
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Right Side: Rhythm 2x4 Pattern Grid */}
+            <div className="flex flex-col flex-1 h-[750px] relative">
+                <div className="flex justify-between items-center mb-10 pl-4 w-full border-b-4 border-slate-100 pb-4 h-[80px]">
+                    <h3 className="font-black text-4xl text-slate-800 tracking-tight">
+                        Rhythm Button
+                    </h3>
+                    <button onClick={onComplete} className="px-10 py-5 bg-[#58CC02] text-white rounded-2xl font-black text-2xl shadow-[0_8px_0_rgba(74,171,2,1)] hover:brightness-110 active:translate-y-[8px] active:shadow-none transition-all mr-2">
+                        다음 레슨
+                    </button>
+                </div>
+
+                {/* 2x4 Grid */}
+                <div className="flex-1 grid grid-cols-2 grid-rows-4 gap-6 z-20 h-full relative pl-4 mb-4">
+                    {PATTERNS.map((pattern, idx) => {
+                        const isSelected = selectedPatternIndex === idx;
+                        return (
+                            <button
+                                key={idx}
+                                onClick={() => {
+                                    setSelectedPatternIndex(idx);
+                                    if (!isPlaying) togglePlay();
+                                }}
+                                className={`
+                                    flex flex-col justify-center px-8 rounded-3xl border-[6px] transition-all w-full h-full text-left active:scale-[0.97]
+                                    ${isSelected
+                                        ? 'bg-blue-50 border-blue-500 shadow-xl text-blue-700 z-10 scale-[1.03]'
+                                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                                    }
+                                `}
+                            >
+                                <span className={`font-black text-3xl truncate`}>{pattern.name}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Description Space - Pushed down manually */}
+                <div className={`
+                    ml-4 py-8 px-10 bg-slate-900 rounded-[2rem] shadow-2xl flex items-center gap-8 text-white h-[140px] transition-all duration-500
+                    ${isPlaying ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'}
+                `}>
+                    <div className="w-20 h-20 rounded-2xl bg-blue-500/20 flex items-center justify-center shrink-0 border-2 border-blue-500/50 text-5xl">
+                        💡
+                    </div>
+                    <div className="flex flex-col justify-center gap-2">
+                        <span className="text-blue-400 font-black uppercase tracking-widest text-sm bg-blue-500/10 px-3 py-1 rounded-full w-fit mb-1">
+                            현재 패턴 특징
+                        </span>
+                        <p className="text-2xl font-bold text-slate-100 leading-snug">
+                            {selectedPattern.desc}
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    );
+};
 
 const RhythmGame: React.FC<{ step: LessonStep, onComplete: () => void, membrane: any }> = ({ step, onComplete, membrane }) => {
     const [taps, setTaps] = useState(0);
