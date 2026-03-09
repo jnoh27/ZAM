@@ -143,12 +143,24 @@ export const PianoRoll: React.FC<PianoRollProps> = ({
       }
       startStep = ptr;
     } else {
-      onSetMelody(prev => {
-        const newMelody = [...prev];
-        newMelody[step] = pitch;
-        return newMelody;
-      });
+      // Place the note immediately
+      const melodyWithNewNote = [...melody];
+      melodyWithNewNote[step] = pitch;
+      onSetMelody(melodyWithNewNote);
       audioService.previewNote(pitch);
+
+      // Use the melody WITH the new note as the initial state for drag
+      const newDragState: typeof dragState = {
+        isActive: true,
+        startStep: step,
+        pitch,
+        mode: 'create',
+        hasMoved: false,
+        initialMelody: melodyWithNewNote
+      };
+      setDragState(newDragState);
+      dragStateRef.current = newDragState;
+      return;
     }
 
     const newDragState: typeof dragState = {

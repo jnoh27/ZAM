@@ -232,7 +232,7 @@ const App: React.FC = () => {
                             </div>
                             <img src="/mascot_learning.png" alt="Learning Mascot" className="w-40 h-auto object-contain drop-shadow-sm -mb-4" />
                         </header>
-                        <UnitView
+                        <LearningRoadmap
                             onSelectUnit={setActiveUnit}
                         />
                     </div>

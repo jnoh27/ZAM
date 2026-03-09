@@ -15,6 +15,7 @@ const NOTES_LIST = [
 export const Chords: React.FC<ChordsProps> = ({ onBack }) => {
     const [isMinor, setIsMinor] = useState(false);
     const [activeNotes, setActiveNotes] = useState<string[]>([]);
+    const [isLoaded, setIsLoaded] = useState(false);
     const synthRef = useRef<Tone.Sampler | null>(null);
     const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
 
@@ -35,6 +36,7 @@ export const Chords: React.FC<ChordsProps> = ({ onBack }) => {
             baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/piano/",
             onload: () => {
                 synthRef.current = synth;
+                setIsLoaded(true);
             }
         }).connect(reverb);
         synth.volume.value = -3;
@@ -203,6 +205,11 @@ export const Chords: React.FC<ChordsProps> = ({ onBack }) => {
             {/* Piano Keyboard Area */}
             <div className="h-[45vh] w-full relative bg-[#212121] border-t-8 border-[#212121] select-none touch-none">
                 {renderPianoKeys()}
+                {!isLoaded && (
+                    <div className="absolute inset-0 bg-[#212121]/80 flex items-center justify-center z-20">
+                        <div className="text-white text-xl font-bold animate-pulse">악기 로딩 중...</div>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -41,6 +41,7 @@ export const Arpeggios: React.FC<ArpeggiosProps> = ({ onBack }) => {
     const [isMinor, setIsMinor] = useState(false);
     const [patternIndex, setPatternIndex] = useState(0);
     const [activeNoteIndex, setActiveNoteIndex] = useState(-1);
+    const [isLoaded, setIsLoaded] = useState(false);
 
     const synthRef = useRef<Tone.Sampler | null>(null);
     const sequenceRef = useRef<Tone.Sequence | null>(null);
@@ -77,6 +78,7 @@ export const Arpeggios: React.FC<ArpeggiosProps> = ({ onBack }) => {
             baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/piano/",
             onload: () => {
                 synthRef.current = synth;
+                setIsLoaded(true);
             }
         }).connect(reverb);
         synth.volume.value = -5;
@@ -277,10 +279,11 @@ export const Arpeggios: React.FC<ArpeggiosProps> = ({ onBack }) => {
                     {/* Central Play Button */}
                     <button
                         onClick={handlePlayToggle}
+                        disabled={!isLoaded}
                         className={`
                     absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
                     w-32 h-32 rounded-full flex items-center justify-center z-20 shadow-2xl transition-transform active:scale-95 border-4 border-[#212121]
-                    ${isPlaying ? 'bg-white text-[#212121]' : 'bg-[#EA4335] text-white'}
+                    ${!isLoaded ? 'bg-slate-500 text-slate-300 cursor-not-allowed' : isPlaying ? 'bg-white text-[#212121]' : 'bg-[#EA4335] text-white'}
                         `}
                     >
                         {isPlaying ? <Pause size={48} fill="currentColor" /> : <Play size={48} fill="currentColor" className="ml-2" />}
