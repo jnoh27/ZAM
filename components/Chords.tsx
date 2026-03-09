@@ -26,12 +26,13 @@ export const Chords: React.FC<ChordsProps> = ({ onBack }) => {
 
         const synth = new Tone.Sampler({
             urls: {
-                "A1": "A1.mp3",
-                "C2": "C2.mp3",
-                "E2": "E2.mp3",
-                "G2": "G2.mp3"
+                "A3": "A3.mp3",
+                "A4": "A4.mp3",
+                "A5": "A5.mp3",
+                "C4": "C4.mp3",
+                "C5": "C5.mp3"
             },
-            baseUrl: "/samples/casio/",
+            baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/piano/",
             onload: () => {
                 synthRef.current = synth;
             }
@@ -50,11 +51,18 @@ export const Chords: React.FC<ChordsProps> = ({ onBack }) => {
     const clearTimeouts = () => {
         timeoutsRef.current.forEach(clearTimeout);
         timeoutsRef.current = [];
+        if (synthRef.current) {
+            synthRef.current.releaseAll();
+        }
     };
 
     const playChord = async (rootNote: string) => {
         if (!synthRef.current) return;
+
         await Tone.start();
+        if (Tone.context.state !== 'running') {
+            await Tone.context.resume();
+        }
 
         clearTimeouts();
 
@@ -170,7 +178,7 @@ export const Chords: React.FC<ChordsProps> = ({ onBack }) => {
                 <button onClick={() => { Tone.Transport.stop(); onBack(); }} className="p-3 bg-[#E8EAED] rounded-full hover:bg-slate-200 transition-colors">
                     <ArrowLeft size={32} strokeWidth={3} className="text-[#5F6368]" />
                 </button>
-                <h1 className="text-3xl font-black text-[#202124]">화음 (Chords)</h1>
+                <h1 className="text-3xl font-black text-[#202124]">화음 연주</h1>
                 <div className="w-12"></div>
             </header>
 

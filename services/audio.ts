@@ -3,8 +3,8 @@ import { TOTAL_STEPS, SUSTAIN_TOKEN, STEPS_PER_BAR } from '../constants';
 import { Melody, Progression } from '../types';
 
 class AudioService {
-  private synth: Tone.PolySynth | null = null;
-  private chordSynth: Tone.PolySynth | null = null;
+  private synth: Tone.Sampler | null = null;
+  private chordSynth: Tone.Sampler | null = null;
   private sequence: Tone.Sequence | null = null;
   private melody: Melody = new Array(TOTAL_STEPS).fill(null);
   private progression: Progression | null = null;
@@ -17,54 +17,47 @@ class AudioService {
 
   async init() {
     if (this.isInitialized) return;
-    
+
     await Tone.start();
     if (Tone.context.state !== 'running') {
-        await Tone.context.resume();
+      await Tone.context.resume();
     }
 
     // Master Bus Effects
     this.limiter = new Tone.Limiter(-1).toDestination();
-    
+
     // JCReverb is synchronous
     this.reverb = new Tone.JCReverb({
       roomSize: 0.5,
       wet: 0.15
     }).connect(this.limiter);
 
-    // Initial Melody Synth - Default FMSynth "Keys" sound
-    this.synth = new Tone.PolySynth(Tone.FMSynth, {
-      harmonicity: 2,
-      modulationIndex: 3,
-      oscillator: { type: "sine" },
-      envelope: { attack: 0.005, decay: 0.3, sustain: 0.2, release: 1.2 },
-      modulation: { type: "square" },
-      modulationEnvelope: { attack: 0.005, decay: 0.2, sustain: 0, release: 0.2 },
-      volume: -1 
+    // Initial Melody Synth - Piano Sampler
+    this.synth = new Tone.Sampler({
+      urls: {
+        "A3": "A3.mp3",
+        "A4": "A4.mp3",
+        "A5": "A5.mp3",
+        "C4": "C4.mp3",
+        "C5": "C5.mp3"
+      },
+      baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/piano/",
+      volume: 0
     }).connect(this.reverb);
-    
-    this.synth.maxPolyphony = 16;
 
-    // Chord/Backing Synth - "Warm Pad"
-    // Adjusted: Faster attack to ensure audibility, higher polyphony
     const filter = new Tone.Filter(800, "lowpass").connect(this.reverb);
-    
-    this.chordSynth = new Tone.PolySynth(Tone.Synth, {
-      oscillator: {
-        type: "fatsawtooth",
-        count: 3,
-        spread: 20
+
+    this.chordSynth = new Tone.Sampler({
+      urls: {
+        "A3": "A3.mp3",
+        "A4": "A4.mp3",
+        "A5": "A5.mp3",
+        "C4": "C4.mp3",
+        "C5": "C5.mp3"
       },
-      envelope: {
-        attack: 0.1, // Faster attack (was 1.2)
-        decay: 1.0,
-        sustain: 0.6,
-        release: 2.0,
-      },
-      volume: -20 // Slightly louder
+      baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/piano/",
+      volume: -10
     }).connect(filter);
-    
-    this.chordSynth.maxPolyphony = 12; // Increased to prevent voice stealing
 
     Tone.Transport.bpm.value = 100;
 
@@ -95,29 +88,32 @@ class AudioService {
 
       if (this.isChordEnabled && this.chordSynth && this.progression) {
         if (stepIndex % STEPS_PER_BAR === 0) {
-            const barIndex = Math.floor(stepIndex / STEPS_PER_BAR);
-            this.triggerChord(barIndex, time);
+          const barIndex = Math.floor(stepIndex / STEPS_PER_BAR);
+          this.triggerChord(barIndex, time);
         }
       }
     }, steps, "8n");
 
     this.sequence.start(0);
+
+    await Tone.loaded();
+
     this.isInitialized = true;
   }
 
   private triggerChord(barIndex: number, time?: number) {
-      if (!this.chordSynth || !this.progression) return;
-      
-      const chord = this.progression[barIndex];
-      if (chord) {
-          const root = chord.root + "3";
-          const others = chord.notes
-              .filter(n => n !== chord.root)
-              .map(n => n + "4");
-          
-          // Use '1m' (1 measure) duration for the chord
-          this.chordSynth.triggerAttackRelease([root, ...others], "1m", time);
-      }
+    if (!this.chordSynth || !this.progression) return;
+
+    const chord = this.progression[barIndex];
+    if (chord) {
+      const root = chord.root + "3";
+      const others = chord.notes
+        .filter(n => n !== chord.root)
+        .map(n => n + "4");
+
+      // Use '1m' (1 measure) duration for the chord
+      this.chordSynth.triggerAttackRelease([root, ...others], "1m", time);
+    }
   }
 
   updateMelody(melody: Melody) {
@@ -130,14 +126,14 @@ class AudioService {
 
   setChordEnabled(enabled: boolean) {
     this.isChordEnabled = enabled;
-    
+
     // Instant feedback: If playing and we just enabled chords, trigger current bar immediately
     if (enabled && this.isInitialized && Tone.Transport.state === 'started') {
-        const barIndex = Math.floor(this.currentStepIndex / STEPS_PER_BAR);
-        // Trigger immediately (no time arg = 'now')
-        this.triggerChord(barIndex);
+      const barIndex = Math.floor(this.currentStepIndex / STEPS_PER_BAR);
+      // Trigger immediately (no time arg = 'now')
+      this.triggerChord(barIndex);
     } else if (!enabled && this.chordSynth) {
-        this.chordSynth.releaseAll();
+      this.chordSynth.releaseAll();
     }
   }
 
@@ -176,7 +172,7 @@ class AudioService {
     if (this.chordSynth) this.chordSynth.releaseAll();
     if (this.synth) this.synth.releaseAll();
   }
-  
+
   setBpm(bpm: number) {
     Tone.Transport.bpm.value = bpm;
   }

@@ -132,7 +132,7 @@ export const BeatSequencer: React.FC<BeatSequencerProps> = ({ onBack }) => {
         <button onClick={() => { setIsPlaying(false); onBack(); }} className="p-3 bg-[#E8EAED] rounded-full text-[#5F6368] hover:bg-[#DADCE0]">
           <ArrowLeft size={32} strokeWidth={3} />
         </button>
-        <h1 className="text-3xl font-black text-[#202124]">리듬 만들기</h1>
+        <h1 className="text-3xl font-black text-[#202124]">리듬 메이커</h1>
         <button onClick={() => setGrid(Array(4).fill(null).map(() => Array(STEPS).fill(false)))} className="p-3 bg-[#E8EAED] rounded-full text-[#5F6368]">
           <Trash2 size={32} strokeWidth={3} />
         </button>

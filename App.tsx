@@ -12,7 +12,8 @@ import { LearningRoadmap } from './components/LearningRoadmap';
 import { LessonPlayer } from './components/LessonPlayer';
 import { Harmonics } from './components/Harmonics';
 import { Soundwaves } from './components/Soundwaves';
-import { Music, Mic2, Piano, PenTool, Smile, Speaker, GitGraph, GraduationCap, LayoutGrid, Activity, Mic, Layers, Waves } from 'lucide-react';
+import { HelpModal } from './components/HelpModal';
+import { Music, Mic2, Piano, PenTool, Smile, Speaker, GitGraph, GraduationCap, LayoutGrid, Activity, Mic, Layers, Waves, RotateCw } from 'lucide-react';
 
 type View = 'dashboard' | 'tool-melody' | 'tool-beat' | 'tool-chord' | 'game-kandinsky' | 'game-oscillators' | 'game-strings' | 'game-arpeggios' | 'game-voicespinner' | 'game-chords' | 'game-harmonics' | 'game-soundwaves';
 type Tab = 'playground' | 'learning';
@@ -22,6 +23,8 @@ const App: React.FC = () => {
     const [currentView, setCurrentView] = useState<View>('dashboard');
     const [activeLesson, setActiveLesson] = useState<string | null>(null);
     const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
+
 
     const handleLessonComplete = () => {
         if (activeLesson) {
@@ -72,14 +75,9 @@ const App: React.FC = () => {
 
             {/* Top Navigation Bar */}
             <div className="w-full bg-white border-b shadow-sm sticky top-0 z-40">
-                <div className="max-w-4xl mx-auto px-4 flex justify-between items-center h-16">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-[#9D71E8] flex items-center justify-center text-white">
-                            <Music size={16} strokeWidth={2.5} />
-                        </div>
-                    </div>
+                <div className="w-full px-8 relative flex justify-center items-center h-16">
 
-                    <div className="flex-1 flex justify-center items-center gap-8">
+                    <div className="flex justify-center items-center gap-8">
                         <button
                             onClick={() => setActiveTab('playground')}
                             className={`px-4 py-5 text-[15px] font-bold border-b-[3px] transition-colors ${activeTab === 'playground' ? 'border-[#9D71E8] text-[#9D71E8]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
@@ -94,9 +92,12 @@ const App: React.FC = () => {
                         </button>
                     </div>
 
-                    <div className="w-8 h-8 rounded-full bg-[#EADDFF] flex items-center justify-center text-[#9D71E8] font-bold cursor-help">
+                    <button
+                        onClick={() => setIsHelpOpen(true)}
+                        className="absolute right-8 w-8 h-8 rounded-full bg-[#EADDFF] flex items-center justify-center text-[#9D71E8] font-bold cursor-pointer hover:bg-[#D1C4E9] transition-colors"
+                    >
                         ?
-                    </div>
+                    </button>
                 </div>
             </div>
 
@@ -117,16 +118,16 @@ const App: React.FC = () => {
                         {/* Playground Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-16">
                             <DashboardButton
-                                title="코드와 멜로디"
-                                subtitle="나만의 코드 진행 만들기"
+                                title="멜로디 메이커"
+                                subtitle="멜로디와 화음 작곡"
                                 circleColor="#AECBFA"
                                 iconColor="#1967D2"
                                 icon={<Piano size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('tool-melody')}
                             />
                             <DashboardButton
-                                title="드럼 비트 머신"
-                                subtitle="리듬 만들기"
+                                title="리듬 메이커"
+                                subtitle="드럼 비트 제작"
                                 circleColor="#F4B4C8"
                                 iconColor="#D81B60"
                                 icon={<Mic2 size={32} strokeWidth={2.5} />}
@@ -134,7 +135,7 @@ const App: React.FC = () => {
                             />
                             <DashboardButton
                                 title="코드 메이커"
-                                subtitle="화음 쌓기"
+                                subtitle="화음 조합 학습"
                                 circleColor="#FDE293"
                                 iconColor="#E27200"
                                 icon={<Smile size={32} strokeWidth={2.5} />}
@@ -142,31 +143,31 @@ const App: React.FC = () => {
                             />
                             <DashboardButton
                                 title="칸딘스키"
-                                subtitle="소리로 그림 그리기"
+                                subtitle="그림으로 연주하기"
                                 circleColor="#A8E6CF"
                                 iconColor="#0F9D58"
                                 icon={<PenTool size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('game-kandinsky')}
                             />
                             <DashboardButton
-                                title="피아노 화음"
-                                subtitle="CML 화음 실험"
+                                title="화음 연주"
+                                subtitle="즐거운 화음 실험"
                                 circleColor="#FFD6A5"
                                 iconColor="#E27200"
-                                icon={<Piano size={32} strokeWidth={2.5} />}
+                                icon={<LayoutGrid size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('game-chords')}
                             />
                             <DashboardButton
-                                title="오실레이터"
-                                subtitle="악기 소리 탐험"
+                                title="악기 탐험"
+                                subtitle="다양한 악기 소리"
                                 circleColor="#D7BDE2"
                                 iconColor="#8E44AD"
-                                icon={<Speaker size={32} strokeWidth={2.5} />}
+                                icon={<Music size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('game-oscillators')}
                             />
                             <DashboardButton
-                                title="스트링"
-                                subtitle="기타 줄 튕기기"
+                                title="하프 스트링"
+                                subtitle="하프 소리 연주"
                                 circleColor="#FAD7A1"
                                 iconColor="#E67E22"
                                 icon={<GitGraph size={32} strokeWidth={2.5} className="rotate-90" />}
@@ -174,30 +175,30 @@ const App: React.FC = () => {
                             />
                             <DashboardButton
                                 title="아르페지오"
-                                subtitle="패턴 쌓기"
+                                subtitle="리드미컬한 화음"
                                 circleColor="#C5CAE9"
                                 iconColor="#3F51B5"
-                                icon={<Activity size={32} strokeWidth={2.5} />}
+                                icon={<RotateCw size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('game-arpeggios')}
                             />
                             <DashboardButton
                                 title="보이스 스피너"
-                                subtitle="피치 조절하기"
+                                subtitle="목소리 변형하기"
                                 circleColor="#A2D9CE"
                                 iconColor="#117A65"
                                 icon={<Mic size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('game-voicespinner')}
                             />
                             <DashboardButton
-                                title="배음 (Harmonics)"
-                                subtitle="파동 연주하기"
+                                title="하모닉스"
+                                subtitle="배음 원리 탐구"
                                 circleColor="#FFC8DD"
                                 iconColor="#D81B60"
                                 icon={<Layers size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('game-harmonics')}
                             />
                             <DashboardButton
-                                title="사운드웨이브"
+                                title="사운드 웨이브"
                                 subtitle="소리 파동 체험"
                                 circleColor="#A0C4FF"
                                 iconColor="#1967D2"
@@ -223,9 +224,12 @@ const App: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
         </div>
     );
 }
+
 
 const DashboardButton: React.FC<{ title: string, subtitle: string, circleColor: string, iconColor: string, icon: React.ReactNode, onClick: () => void }> = ({ title, subtitle, circleColor, iconColor, icon, onClick }) => (
     <button

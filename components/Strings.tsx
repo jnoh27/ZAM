@@ -27,26 +27,28 @@ export const Strings: React.FC<StringsProps> = ({ onBack }) => {
   const prevMouse = useRef<{ x: number, y: number } | null>(null);
 
   useEffect(() => {
-    const chorus = new Tone.Chorus(4, 2.5, 0.5).toDestination().start();
-    const reverb = new Tone.Reverb(2).toDestination();
+    const reverb = new Tone.Reverb({ decay: 3, wet: 0.3 }).toDestination();
 
     const sampler = new Tone.Sampler({
       urls: {
-        "A1": "A1.mp3",
-        "C2": "C2.mp3",
-        "E2": "E2.mp3",
-        "G2": "G2.mp3"
+        "G1": "G1.mp3",
+        "D2": "D2.mp3",
+        "A2": "A2.mp3",
+        "C3": "C3.mp3",
+        "E3": "E3.mp3",
+        "G3": "G3.mp3"
       },
-      baseUrl: "/samples/casio/",
-      onload: () => {
-        synthRef.current = sampler;
-      }
-    }).connect(chorus).connect(reverb);
-    sampler.volume.value = -4;
+      baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/harp/"
+    }).connect(reverb);
+
+    sampler.volume.value = 0;
+    synthRef.current = sampler;
 
     return () => {
+      if (synthRef.current === sampler) {
+        synthRef.current = null;
+      }
       sampler.dispose();
-      chorus.dispose();
       reverb.dispose();
       cancelAnimationFrame(animationRef.current);
     };
@@ -194,7 +196,7 @@ export const Strings: React.FC<StringsProps> = ({ onBack }) => {
         <button onClick={onBack} className="p-3 bg-white/10 backdrop-blur rounded-full pointer-events-auto hover:bg-white/20 transition-colors">
           <ArrowLeft size={32} strokeWidth={3} className="text-white" />
         </button>
-        <h1 className="text-3xl font-black text-white/90 drop-shadow-md">스트링</h1>
+        <h1 className="text-3xl font-black text-white/90 drop-shadow-md">하프 스트링</h1>
       </header>
 
       <div

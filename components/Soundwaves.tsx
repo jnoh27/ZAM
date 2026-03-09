@@ -23,11 +23,11 @@ export const Soundwaves: React.FC<SoundwavesProps> = ({ onBack }) => {
         const reverb = new Tone.Reverb({ decay: 2, wet: 0.2 }).toDestination();
 
         const synth = new Tone.Synth({
-            oscillator: { type: "square" },
-            envelope: { attack: 0.05, decay: 0.2, sustain: 1, release: 0.5 }
+            oscillator: { type: "triangle" },
+            envelope: { attack: 0.1, decay: 0.2, sustain: 1, release: 0.5 }
         }).connect(reverb);
 
-        synth.volume.value = -10;
+        synth.volume.value = -8;
         synthRef.current = synth;
 
         return () => {
@@ -216,7 +216,7 @@ export const Soundwaves: React.FC<SoundwavesProps> = ({ onBack }) => {
                 <button onClick={() => { Tone.Transport.stop(); onBack(); }} className="p-3 bg-white/80 backdrop-blur rounded-full pointer-events-auto hover:bg-slate-200 transition-colors border shadow-sm">
                     <ArrowLeft size={32} strokeWidth={3} className="text-[#5F6368]" />
                 </button>
-                <h1 className="text-3xl font-black text-[#202124] drop-shadow-sm">사운드웨이브</h1>
+                <h1 className="text-3xl font-black text-[#202124] drop-shadow-sm">사운드 웨이브</h1>
             </header>
 
             {/* Visualizer Canvas */}

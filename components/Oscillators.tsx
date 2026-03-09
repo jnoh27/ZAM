@@ -25,12 +25,12 @@ const INSTRUMENTS: InstrumentConfig[] = [
 
 export const Oscillators: React.FC<OscillatorsProps> = ({ onBack }) => {
     const [instIndex, setInstIndex] = useState(0);
-    const [frequency, setFrequency] = useState(440);
+    const [currentNote, setCurrentNote] = useState('A4');
     const [isPressing, setIsPressing] = useState(false);
     const [touchY, setTouchY] = useState(0.5); // 0 to 1
 
     const synthRef = useRef<Tone.Sampler | null>(null);
-    const lastNoteRef = useRef<number>(0);
+    const lastNoteRef = useRef<string>('');
 
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -39,33 +39,74 @@ export const Oscillators: React.FC<OscillatorsProps> = ({ onBack }) => {
 
     const currentInst = INSTRUMENTS[instIndex];
 
+    const SCALE = [
+        'C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3',
+        'C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4',
+        'C5', 'D5', 'E5', 'F5', 'G5', 'A5', 'B5',
+        'C6'
+    ];
+
+    const INSTRUMENT_SAMPLES: Record<InstrumentType, { baseUrl: string, urls: Record<string, string> }> = {
+        piano: {
+            baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/piano/",
+            urls: {
+                "A3": "A3.mp3",
+                "A4": "A4.mp3",
+                "A5": "A5.mp3",
+                "C4": "C4.mp3",
+                "C5": "C5.mp3"
+            }
+        },
+        violin: {
+            baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/violin/",
+            urls: {
+                "A3": "A3.mp3",
+                "C4": "C4.mp3",
+                "E4": "E4.mp3",
+                "A4": "A4.mp3",
+                "C5": "C5.mp3"
+            }
+        },
+        trumpet: {
+            baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/trumpet/",
+            urls: {
+                "A3": "A3.mp3",
+                "C4": "C4.mp3",
+                "F4": "F4.mp3",
+                "A5": "A5.mp3"
+            }
+        },
+        bells: {
+            baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/xylophone/",
+            urls: {
+                "G4": "G4.mp3",
+                "C5": "C5.mp3",
+                "G5": "G5.mp3",
+                "C6": "C6.mp3"
+            }
+        }
+    };
+
     // --- Audio Setup ---
     useEffect(() => {
-        // 1. Cleanup previous synth explicitly to avoid "Object disposed" errors
-        synthRef.current = null;
-
         const limiter = new Tone.Limiter(-1).toDestination();
         const reverb = new Tone.JCReverb({ roomSize: 0.4, wet: 0.2 }).connect(limiter);
 
+        const config = INSTRUMENT_SAMPLES[currentInst.id];
+
         const sampler = new Tone.Sampler({
-            urls: {
-                "A1": "A1.mp3",
-                "C2": "C2.mp3",
-                "E2": "E2.mp3",
-                "G2": "G2.mp3"
-            },
-            baseUrl: "/samples/casio/",
-            onload: () => {
-                synthRef.current = sampler;
-            }
+            urls: config.urls,
+            baseUrl: config.baseUrl
         }).connect(reverb);
+
         sampler.volume.value = -4;
+        synthRef.current = sampler;
 
         return () => {
-            if (synthRef.current) {
-                synthRef.current.dispose();
+            if (synthRef.current === sampler) {
                 synthRef.current = null;
             }
+            sampler.dispose();
             reverb.dispose();
             limiter.dispose();
             cancelAnimationFrame(animationRef.current);
@@ -148,26 +189,26 @@ export const Oscillators: React.FC<OscillatorsProps> = ({ onBack }) => {
             console.warn("Audio context start failed", err);
         }
 
-        const freq = updatePitch(e.clientY);
+        const note = updatePitch(e.clientY);
 
         if (synthRef.current && !synthRef.current.disposed) {
-            synthRef.current.triggerAttack(freq);
-            lastNoteRef.current = freq;
+            synthRef.current.triggerAttack(note);
+            lastNoteRef.current = note;
         }
     };
 
     const handlePointerMove = (e: React.PointerEvent) => {
         e.preventDefault();
         if (!isPressing) return;
-        const freq = updatePitch(e.clientY);
+        const note = updatePitch(e.clientY);
 
         if (synthRef.current && !synthRef.current.disposed) {
-            const currentMidi = Tone.Frequency(freq).toMidi();
-            const lastMidi = Tone.Frequency(lastNoteRef.current).toMidi();
-            if (Math.abs(currentMidi - lastMidi) >= 1) {
-                synthRef.current.triggerRelease();
-                synthRef.current.triggerAttack(freq);
-                lastNoteRef.current = freq;
+            if (note !== lastNoteRef.current) {
+                if (lastNoteRef.current) {
+                    synthRef.current.triggerRelease(lastNoteRef.current);
+                }
+                synthRef.current.triggerAttack(note);
+                lastNoteRef.current = note;
             }
         }
     };
@@ -176,7 +217,7 @@ export const Oscillators: React.FC<OscillatorsProps> = ({ onBack }) => {
         e.preventDefault();
         setIsPressing(false);
         (e.currentTarget as Element).releasePointerCapture(e.pointerId);
-        if (synthRef.current && !synthRef.current.disposed) {
+        if (synthRef.current && !synthRef.current.disposed && lastNoteRef.current) {
             synthRef.current.triggerRelease(lastNoteRef.current);
         }
     };
@@ -184,15 +225,16 @@ export const Oscillators: React.FC<OscillatorsProps> = ({ onBack }) => {
     const updatePitch = (clientY: number) => {
         const height = window.innerHeight;
         const t = Math.max(0, Math.min(1, clientY / height));
+
+        const numDegrees = SCALE.length;
+        const index = Math.floor((1 - t) * numDegrees);
+        const clampedIndex = Math.max(0, Math.min(numDegrees - 1, index));
+
         setTouchY(t);
-        // Map to a reasonable pitch range (C3 to C6 approx)
-        const minFreq = 130;
-        const maxFreq = 1050;
-        const percentage = 1 - t;
-        // Exponential mapping for pitch naturalness
-        const freq = minFreq * Math.pow(maxFreq / minFreq, percentage);
-        setFrequency(freq);
-        return freq;
+
+        const note = SCALE[clampedIndex];
+        setCurrentNote(note);
+        return note;
     };
 
     const nextInst = (dir: 1 | -1) => {
@@ -207,83 +249,97 @@ export const Oscillators: React.FC<OscillatorsProps> = ({ onBack }) => {
     const scale = isPressing ? 1.05 : 1;
 
     return (
-        <div
-            ref={containerRef}
-            className="w-full h-full flex flex-col relative overflow-hidden select-none touch-none transition-colors duration-500"
-            style={{ backgroundColor: currentInst.bgColor, touchAction: 'none' }}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerUp}
-        >
-            <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
-
-            {/* Header - Ensure z-index is higher and buttons stop propagation */}
-            <header className="absolute top-0 left-0 w-full p-6 flex justify-between z-20 pointer-events-none">
+        <div className="w-full h-full flex flex-col bg-[#F8F9FA] overflow-hidden select-none">
+            {/* Unified Header */}
+            <header className="p-4 border-b flex items-center justify-between bg-white z-20 shadow-sm relative flex-shrink-0 pointer-events-auto">
                 <button
                     onClick={(e) => { e.stopPropagation(); onBack(); }}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    className="p-3 bg-white/80 backdrop-blur rounded-full pointer-events-auto shadow-sm hover:scale-105 transition-transform"
+                    className="p-3 bg-[#E8EAED] rounded-full hover:bg-slate-200 transition-colors"
                 >
                     <ArrowLeft size={32} strokeWidth={3} className="text-[#5F6368]" />
                 </button>
-                <div className="flex flex-col items-end">
-                    <div className="bg-white/90 px-8 py-3 rounded-full font-black text-3xl text-[#202124] backdrop-blur shadow-lg mb-2 flex items-center gap-2">
-                        <Music size={24} fill={currentInst.color} strokeWidth={0} />
-                        {currentInst.name}
-                    </div>
-                    <div className="bg-white/60 px-4 py-1.5 rounded-full font-bold text-[#5F6368] backdrop-blur text-sm tabular-nums shadow-sm">
-                        {Math.round(frequency)} Hz
-                    </div>
+                <div className="flex items-center gap-3">
+                    <Music size={28} fill={currentInst.color} strokeWidth={0} />
+                    <h1 className="text-3xl font-black text-[#202124]">악기 탐험</h1>
                 </div>
+                <div className="w-12"></div>
             </header>
 
-            {/* Instrument Display */}
-            <div className="flex-1 flex items-center justify-center w-full relative z-0 pointer-events-none">
-                <div
-                    style={{
-                        transform: `scale(${scale}) rotate(${isPressing ? -tiltAngle : 0}deg)`,
-                        transition: 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-                    }}
-                    className="relative filter drop-shadow-2xl"
-                >
-                    <InstrumentCharacter type={currentInst.id} color={currentInst.color} darkColor={currentInst.darkColor} isPlaying={isPressing} />
+            {/* Experiment Canvas Area */}
+            <div
+                ref={containerRef}
+                className="flex-1 w-full relative overflow-hidden transition-colors duration-500 touch-none flex flex-col items-center justify-center cursor-ns-resize"
+                style={{ backgroundColor: currentInst.bgColor, touchAction: 'none' }}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+            >
+                <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
+
+                {/* Instrument Display */}
+                <div className="relative z-0 pointer-events-none flex items-center justify-center w-full">
+                    <div
+                        style={{
+                            transform: `scale(${scale}) rotate(${isPressing ? -tiltAngle : 0}deg)`,
+                            transition: 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                        }}
+                        className="relative filter drop-shadow-2xl"
+                    >
+                        <InstrumentCharacter type={currentInst.id} color={currentInst.color} darkColor={currentInst.darkColor} isPlaying={isPressing} />
+                    </div>
                 </div>
 
-                {/* Vertical Pitch Guide */}
+                {/* Floating Note Badge */}
                 {isPressing && (
-                    <div className="absolute right-8 top-1/4 bottom-1/4 w-1.5 rounded-full bg-black/5 pointer-events-none">
-                        <div
-                            className="absolute w-8 h-8 rounded-full shadow-lg border-4 border-white -left-[13px] transition-all duration-75 ease-out"
-                            style={{
-                                top: `${touchY * 100}%`,
-                                backgroundColor: currentInst.color
-                            }}
-                        />
+                    <div className="absolute top-[10%] left-1/2 -translate-x-1/2 pointer-events-none z-10">
+                        <div className="bg-white/90 px-8 py-3 rounded-full font-black text-3xl text-[#202124] backdrop-blur shadow-lg animate-bounce flex items-center justify-center min-w-[120px]">
+                            <span style={{ color: currentInst.color }}>{currentNote}</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Discrete Vertical Pitch Guide */}
+                <div className="absolute right-8 top-[15%] bottom-[15%] flex flex-col justify-between items-center pointer-events-none opacity-60">
+                    {[...SCALE].reverse().map((note, index) => {
+                        const isCurrent = currentNote === note && isPressing;
+                        return (
+                            <div
+                                key={index}
+                                className={`w-8 h-1.5 rounded-full transition-all duration-100 ${isCurrent ? 'scale-[2.5] opacity-100 shadow-lg' : 'scale-100 opacity-40 shadow-none'}`}
+                                style={{
+                                    backgroundColor: isCurrent ? currentInst.color : '#8A94A0'
+                                }}
+                            />
+                        );
+                    })}
+                </div>
+
+                {!isPressing && (
+                    <div className="absolute top-[80%] left-1/2 -translate-x-1/2 pointer-events-none text-xl font-bold text-[#5F6368] opacity-50 bg-white/50 px-6 py-2 rounded-full backdrop-blur-sm shadow-sm whitespace-nowrap animate-pulse">
+                        위아래로 드래그 해보세요
                     </div>
                 )}
             </div>
 
-            {/* Navigation - High Z-index and stopPropagation */}
-            <div className="h-32 w-full relative pointer-events-none flex items-center justify-center gap-12 z-20 flex-shrink-0 pb-8">
+            {/* Navigation Drawer matching other UI */}
+            <div className="p-6 bg-white border-t border-slate-100 flex items-center justify-center gap-12 relative z-20 flex-shrink-0 pointer-events-auto shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
                 <button
                     onClick={(e) => { e.stopPropagation(); nextInst(-1); }}
-                    className="pointer-events-auto p-5 bg-white rounded-full shadow-xl text-[#5F6368] active:scale-90 transition-transform hover:bg-slate-50 border border-slate-100"
-                    onPointerDown={(e) => e.stopPropagation()}
+                    className="p-4 bg-white rounded-full shadow-md text-[#5F6368] active:scale-95 transition-transform hover:bg-slate-50 border border-slate-200"
                 >
-                    <ChevronLeft size={40} strokeWidth={4} />
+                    <ChevronLeft size={36} strokeWidth={4} />
                 </button>
 
-                <div className="flex gap-4 pointer-events-auto bg-white/50 p-2 rounded-full backdrop-blur-sm" onPointerDown={(e) => e.stopPropagation()}>
+                <div className="flex gap-6 p-3 bg-slate-50 rounded-full shadow-inner border border-slate-100">
                     {INSTRUMENTS.map((inst, i) => (
                         <button
                             key={inst.id}
                             onClick={(e) => { e.stopPropagation(); setInstIndex(i); }}
-                            onPointerDown={(e) => e.stopPropagation()}
                             className={`
-                        w-6 h-6 rounded-full transition-all duration-300 ring-2 ring-white shadow-sm
-                        ${i === instIndex ? 'scale-125 opacity-100' : 'opacity-40 scale-100 hover:opacity-60'}
-                    `}
+                                w-8 h-8 rounded-full transition-all duration-300 ring-4 shadow-sm
+                                ${i === instIndex ? 'scale-110 opacity-100 ring-white' : 'opacity-30 scale-100 ring-transparent hover:opacity-60'}
+                            `}
                             style={{ backgroundColor: inst.color }}
                         />
                     ))}
@@ -291,142 +347,30 @@ export const Oscillators: React.FC<OscillatorsProps> = ({ onBack }) => {
 
                 <button
                     onClick={(e) => { e.stopPropagation(); nextInst(1); }}
-                    className="pointer-events-auto p-5 bg-white rounded-full shadow-xl text-[#5F6368] active:scale-90 transition-transform hover:bg-slate-50 border border-slate-100"
-                    onPointerDown={(e) => e.stopPropagation()}
+                    className="p-4 bg-white rounded-full shadow-md text-[#5F6368] active:scale-95 transition-transform hover:bg-slate-50 border border-slate-200"
                 >
-                    <ChevronRight size={40} strokeWidth={4} />
+                    <ChevronRight size={36} strokeWidth={4} />
                 </button>
             </div>
-
-            {!isPressing && (
-                <div className="absolute top-3/4 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none text-2xl font-black text-[#5F6368] opacity-30 animate-bounce">
-                    위아래로 눌러보세요
-                </div>
-            )}
         </div>
     );
 };
 
-// --- Instrument Characters ---
-const InstrumentCharacter: React.FC<{ type: InstrumentType; color: string; darkColor: string; isPlaying: boolean }> = ({ type, color, darkColor, isPlaying }) => {
-    // ... (Same SVGs as before)
-    const Eyes = ({ cx = 0, cy = 0 }) => (
-        <g transform={`translate(${cx}, ${cy})`}>
-            <circle cx="-20" cy="0" r="8" fill="white" />
-            <circle cx="-20" cy="0" r="3" fill="#202124" />
-            <circle cx="20" cy="0" r="8" fill="white" />
-            <circle cx="20" cy="0" r="3" fill="#202124" />
-            {isPlaying && (
-                <>
-                    <circle cx="-30" cy="10" r="5" fill="#FF8A80" opacity="0.6" />
-                    <circle cx="30" cy="10" r="5" fill="#FF8A80" opacity="0.6" />
-                </>
-            )}
-        </g>
+// --- Instrument Images ---
+const InstrumentCharacter: React.FC<{ type: InstrumentType; color: string; darkColor: string; isPlaying: boolean }> = ({ type, isPlaying }) => {
+    const images: Record<InstrumentType, string> = {
+        piano: '/Piano.png',
+        violin: '/Violin.png',
+        trumpet: '/Trumpet.png',
+        bells: '/Bell.png',
+    };
+
+    return (
+        <img
+            src={images[type]}
+            alt={type}
+            className={`w-[300px] h-auto object-contain transition-transform duration-100 ${isPlaying ? 'scale-105 drop-shadow-xl' : 'scale-100 drop-shadow-lg'}`}
+            draggable={false}
+        />
     );
-
-    const Mouth = ({ cx = 0, cy = 0 }) => (
-        <g transform={`translate(${cx}, ${cy})`}>
-            {isPlaying ? (
-                <circle cx="0" cy="5" r="8" fill="#202124" />
-            ) : (
-                <path d="M -8 5 Q 0 12 8 5" stroke="#202124" strokeWidth="3" fill="none" strokeLinecap="round" />
-            )}
-        </g>
-    );
-
-    switch (type) {
-        case 'piano':
-            return (
-                <svg width="340" height="340" viewBox="0 0 340 340" overflow="visible">
-                    <path d="M 20 120 L 260 120 C 300 120 320 140 320 180 C 320 200 280 280 260 280 L 20 280 Z" fill="#212121" stroke="#000" strokeWidth="4" />
-                    <rect x="40" y="280" width="20" height="40" fill="#212121" />
-                    <rect x="240" y="280" width="20" height="40" fill="#212121" />
-                    <path d="M 20 120 L 260 120 L 300 40 L 20 40 Z" fill="#424242" stroke="#000" strokeWidth="2" opacity="0.9" />
-                    <line x1="240" y1="120" x2="280" y2="50" stroke="#FFD700" strokeWidth="4" />
-                    <rect x="20" y="200" width="100" height="40" fill="#FFF" stroke="#000" strokeWidth="2" rx="4" />
-                    <line x1="34" y1="200" x2="34" y2="240" stroke="#E0E0E0" strokeWidth="1" />
-                    <line x1="48" y1="200" x2="48" y2="240" stroke="#E0E0E0" strokeWidth="1" />
-                    <line x1="62" y1="200" x2="62" y2="240" stroke="#E0E0E0" strokeWidth="1" />
-                    <line x1="76" y1="200" x2="76" y2="240" stroke="#E0E0E0" strokeWidth="1" />
-                    <line x1="90" y1="200" x2="90" y2="240" stroke="#E0E0E0" strokeWidth="1" />
-                    <rect x="28" y="200" width="8" height="25" fill="#000" />
-                    <rect x="44" y="200" width="8" height="25" fill="#000" />
-                    <rect x="70" y="200" width="8" height="25" fill="#000" />
-                    <rect x="86" y="200" width="8" height="25" fill="#000" />
-                    <Eyes cx={180} cy={200} />
-                    <Mouth cx={180} cy={220} />
-                </svg>
-            );
-
-        case 'violin':
-            return (
-                <svg width="300" height="300" viewBox="0 0 300 300" overflow="visible">
-                    <path d="M 150 40 C 190 40, 210 80, 200 110 C 195 125, 205 135, 220 140 C 235 145, 235 220, 150 250 C 65 220, 65 145, 80 140 C 95 135, 105 125, 100 110 C 90 80, 110 40, 150 40 Z" fill={color} stroke={darkColor} strokeWidth="3" />
-                    <rect x="142" y="10" width="16" height="120" fill="#212121" rx="2" />
-                    <circle cx="150" cy="10" r="12" fill="#5D4037" />
-                    <circle cx="150" cy="10" r="6" fill="#3E2723" />
-                    <path d="M 140 250 L 160 250 L 155 210 L 145 210 Z" fill="#212121" />
-                    <rect x="135" y="170" width="30" height="4" fill="#EDB977" />
-                    <path d="M 125 140 Q 115 160 125 180" stroke="#3E2723" strokeWidth="4" fill="none" strokeLinecap="round" />
-                    <path d="M 175 140 Q 185 160 175 180" stroke="#3E2723" strokeWidth="4" fill="none" strokeLinecap="round" />
-                    <line x1="146" y1="10" x2="146" y2="210" stroke="#DDD" strokeWidth="1" />
-                    <line x1="149" y1="10" x2="149" y2="210" stroke="#DDD" strokeWidth="1" />
-                    <line x1="151" y1="10" x2="151" y2="210" stroke="#DDD" strokeWidth="1" />
-                    <line x1="154" y1="10" x2="154" y2="210" stroke="#DDD" strokeWidth="1" />
-                    <path d="M 120 240 Q 100 240 100 220 Q 100 200 120 210" fill="#212121" opacity="0.9" />
-                    <Eyes cx={150} cy={100} />
-                    <Mouth cx={150} cy={125} />
-                    {isPlaying && (
-                        <g className="animate-pulse">
-                            <line x1="60" y1="170" x2="240" y2="170" stroke="#5D4037" strokeWidth="6" strokeLinecap="round" />
-                            <line x1="60" y1="174" x2="240" y2="174" stroke="#FFF8E1" strokeWidth="2" strokeLinecap="round" />
-                        </g>
-                    )}
-                </svg>
-            );
-
-        case 'trumpet':
-            return (
-                <svg width="300" height="300" viewBox="0 0 300 300" overflow="visible">
-                    <g transform={isPlaying ? "scale(1.05)" : "scale(1)"} style={{ transition: 'transform 0.1s' }}>
-                        <path d="M 220 150 L 260 110 C 270 100 270 200 260 190 L 220 150" fill="#FFC107" />
-                        <path d="M 40 140 H 220 V 160 H 100 V 180 H 200 V 160" stroke={color} strokeWidth="14" strokeLinecap="round" fill="none" />
-                        <rect x="100" y="100" width="65" height="40" fill={color} stroke={darkColor} strokeWidth="2" rx="4" />
-                        <rect x="110" y="80" width="10" height="20" fill="#ECEFF1" stroke="#90A4AE" />
-                        <rect x="127" y={isPlaying ? "85" : "80"} width="10" height="20" fill="#ECEFF1" stroke="#90A4AE" />
-                        <rect x="144" y="80" width="10" height="20" fill="#ECEFF1" stroke="#90A4AE" />
-                        <circle cx="115" cy="80" r="6" fill="#FFF" stroke="#90A4AE" />
-                        <circle cx="132" cy={isPlaying ? "85" : "80"} r="6" fill="#FFF" stroke="#90A4AE" />
-                        <circle cx="149" cy="80" r="6" fill="#FFF" stroke="#90A4AE" />
-                        <Eyes cx={180} cy={150} />
-                    </g>
-                </svg>
-            );
-
-        case 'bells':
-            return (
-                <svg width="300" height="300" viewBox="0 0 300 300" overflow="visible">
-                    <g transform={`rotate(${isPlaying ? 15 : 0} 150 50)`} style={{ transition: 'transform 0.1s' }}>
-                        <rect x="140" y="20" width="20" height="60" rx="5" fill="#4E342E" />
-                        <path d="M 150 60 C 110 60, 90 200, 50 220 L 250 220 C 210 200, 190 60, 150 60 Z" fill={color} stroke={darkColor} strokeWidth="4" />
-                        <path d="M 130 80 Q 110 120 110 180" stroke="white" strokeWidth="8" strokeLinecap="round" opacity="0.3" fill="none" />
-                        <circle cx="150" cy="220" r="20" fill="#311B92" />
-                        <Eyes cx={150} cy={140} />
-                        <Mouth cx={150} cy={170} />
-                    </g>
-                    {isPlaying && (
-                        <g stroke={darkColor} strokeWidth="4" strokeLinecap="round">
-                            <path d="M 260 180 L 290 160" />
-                            <path d="M 270 210 L 300 200" />
-                            <path d="M 40 180 L 10 160" />
-                            <path d="M 30 210 L 0 200" />
-                        </g>
-                    )}
-                </svg>
-            );
-
-        default:
-            return null;
-    }
-}
+};

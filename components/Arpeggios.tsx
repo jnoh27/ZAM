@@ -44,52 +44,51 @@ export const Arpeggios: React.FC<ArpeggiosProps> = ({ onBack }) => {
 
     const synthRef = useRef<Tone.Sampler | null>(null);
     const sequenceRef = useRef<Tone.Sequence | null>(null);
-    const patternSeqRef = useRef<number[]>([]);
 
     const currentChordObj = CIRCLE_OF_FIFTHS[activeIndex];
     const currentNotes = isMinor ? currentChordObj.minor : currentChordObj.major;
     const currentPattern = PATTERNS[patternIndex];
 
+    const notesRef = useRef<string[]>(currentNotes);
+    const patternRef = useRef(currentPattern);
+
+    useEffect(() => {
+        notesRef.current = currentNotes;
+        patternRef.current = currentPattern;
+        // Regenerate pattern indexing if needed, but the callback can do it
+    }, [currentNotes, currentPattern]);
+
     // Initialize Audio
     useEffect(() => {
         // Clear transport
         Tone.Transport.cancel();
+        Tone.Transport.seconds = 0;
 
         const reverb = new Tone.Reverb({ decay: 2, wet: 0.3 }).toDestination();
 
         const synth = new Tone.Sampler({
             urls: {
-                "A1": "A1.mp3",
-                "C2": "C2.mp3",
-                "E2": "E2.mp3",
-                "G2": "G2.mp3"
+                "A3": "A3.mp3",
+                "A4": "A4.mp3",
+                "A5": "A5.mp3",
+                "C4": "C4.mp3",
+                "C5": "C5.mp3"
             },
-            baseUrl: "/samples/casio/",
+            baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/piano/",
             onload: () => {
                 synthRef.current = synth;
             }
         }).connect(reverb);
         synth.volume.value = -5;
 
-        return () => {
-            synth.dispose();
-            reverb.dispose();
-            Tone.Transport.stop();
-            Tone.Transport.cancel();
-            if (sequenceRef.current) sequenceRef.current.dispose();
-        };
-    }, []);
-
-    // Sequence Logic
-    useEffect(() => {
-        if (sequenceRef.current) sequenceRef.current.dispose();
-
-        // Generate the sequence pattern
-        patternSeqRef.current = currentPattern.render(currentNotes.length);
-
+        // Persistent Sequence
         const sequence = new Tone.Sequence((time, index) => {
-            const noteIdx = patternSeqRef.current[index % patternSeqRef.current.length];
-            const note = currentNotes[noteIdx];
+            const currentNotesArr = notesRef.current;
+            const patternObj = patternRef.current;
+            const fullPattern = patternObj.render(currentNotesArr.length);
+
+            const noteIdx = fullPattern[index % fullPattern.length];
+            const note = currentNotesArr[noteIdx];
 
             if (synthRef.current) {
                 synthRef.current.triggerAttackRelease(note, "8n", time);
@@ -103,23 +102,36 @@ export const Arpeggios: React.FC<ArpeggiosProps> = ({ onBack }) => {
 
         sequenceRef.current = sequence;
 
-        if (isPlaying) {
-            Tone.Transport.start();
-            sequence.start(0);
-        }
+        return () => {
+            synth.dispose();
+            reverb.dispose();
+            sequence.dispose();
+            Tone.Transport.stop();
+            Tone.Transport.cancel();
+        };
+    }, []);
 
-        return () => { if (sequenceRef.current) sequenceRef.current.dispose(); }
-    }, [activeIndex, isMinor, patternIndex, isPlaying]);
+    // Playback state control
+    useEffect(() => {
+        if (isPlaying && sequenceRef.current) {
+            Tone.Transport.start();
+            sequenceRef.current.start(0);
+        } else {
+            Tone.Transport.stop();
+            sequenceRef.current?.stop();
+        }
+    }, [isPlaying]);
 
     const handlePlayToggle = async () => {
         await Tone.start();
+        if (Tone.context.state !== 'running') {
+            await Tone.context.resume();
+        }
+
         if (isPlaying) {
-            Tone.Transport.stop();
             setIsPlaying(false);
             setActiveNoteIndex(-1);
         } else {
-            Tone.Transport.start();
-            sequenceRef.current?.start(0);
             setIsPlaying(true);
         }
     };
@@ -131,14 +143,19 @@ export const Arpeggios: React.FC<ArpeggiosProps> = ({ onBack }) => {
         setPatternIndex(next);
     };
 
-    const handleSegmentClick = (index: number, minor: boolean) => {
-        Tone.start(); // Ensure audio context is started
+    const handleSegmentClick = async (index: number, minor: boolean) => {
+        await Tone.start();
+        if (Tone.context.state !== 'running') {
+            await Tone.context.resume();
+        }
+
         setActiveIndex(index);
         setIsMinor(minor);
 
         // Preview chord if not playing
         if (!isPlaying && synthRef.current) {
             const notes = minor ? CIRCLE_OF_FIFTHS[index].minor : CIRCLE_OF_FIFTHS[index].major;
+            synthRef.current.releaseAll();
             synthRef.current.triggerAttackRelease(notes, "4n");
         }
     };

@@ -25,6 +25,7 @@ export const PianoRoll: React.FC<PianoRollProps> = ({
     pitch: string;
     mode: 'create' | 'resize';
     hasMoved: boolean;
+    initialMelody: Melody;
   } | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,6 +39,7 @@ export const PianoRoll: React.FC<PianoRollProps> = ({
     pitch: string;
     mode: 'create' | 'resize';
     hasMoved: boolean;
+    initialMelody: Melody;
   } | null>(null);
 
   useEffect(() => {
@@ -154,7 +156,8 @@ export const PianoRoll: React.FC<PianoRollProps> = ({
       startStep,
       pitch,
       mode,
-      hasMoved: false
+      hasMoved: false,
+      initialMelody: melody
     };
 
     setDragState(newDragState);
@@ -190,27 +193,40 @@ export const PianoRoll: React.FC<PianoRollProps> = ({
       dragStateRef.current = { ...currentDrag, hasMoved: true };
     }
 
-    const { startStep, pitch } = currentDrag;
-    if (step < startStep) return;
+    const { startStep, pitch, initialMelody } = currentDrag;
 
-    onSetMelody(prev => {
-      const newMelody = [...prev];
-      newMelody[startStep] = pitch;
+    onSetMelody(() => {
+      const newMelody = [...initialMelody];
 
-      for (let i = startStep + 1; i <= step; i++) {
-        if (isNoteAllowed(pitch, i)) {
-          newMelody[i] = SUSTAIN_TOKEN;
-        } else {
-          break;
+      if (currentDrag.mode === 'resize') {
+        newMelody[startStep] = null;
+        for (let i = startStep + 1; i < TOTAL_STEPS; i++) {
+          if (newMelody[i] === SUSTAIN_TOKEN) {
+            newMelody[i] = null;
+          } else {
+            break;
+          }
         }
       }
 
-      for (let i = step + 1; i < TOTAL_STEPS; i++) {
-        if (newMelody[i] === SUSTAIN_TOKEN) {
-          newMelody[i] = null;
-        } else {
-          break;
-        }
+      let actualMin = startStep;
+      while (actualMin > step && isNoteAllowed(pitch, actualMin - 1)) {
+        actualMin--;
+      }
+
+      let actualMax = startStep;
+      while (actualMax < step && isNoteAllowed(pitch, actualMax + 1)) {
+        actualMax++;
+      }
+
+      if (actualMin < startStep) {
+        newMelody[startStep] = SUSTAIN_TOKEN;
+      }
+
+      newMelody[actualMin] = pitch;
+
+      for (let i = actualMin + 1; i <= actualMax; i++) {
+        newMelody[i] = SUSTAIN_TOKEN;
       }
 
       return newMelody;
