@@ -391,13 +391,13 @@ const RhythmBeatGame: React.FC<{ step: LessonStep, onComplete: () => void }> = (
             {/* Left Side: Controls & Metronome */}
             <div className="flex flex-col items-center justify-between w-[450px] h-[600px] shrink-0 relative pt-4">
 
-                {/* Play Button - Normal Rounded Square */}
+                {/* Play Button */}
                 <button
                     onClick={togglePlay}
-                    className="group relative z-30 mt-4 active:scale-95 transition-transform flex flex-col items-center"
+                    className="group relative z-30 mt-4 active:translate-y-[6px] transition-all flex flex-col items-center"
                 >
-                    <div className={`w-32 h-32 rounded-3xl flex items-center justify-center text-6xl shadow-xl border-4 transition-all duration-300 ${isPlaying ? 'bg-rose-50 border-rose-200 text-rose-500 shadow-rose-200' : 'bg-blue-50 border-blue-200 text-blue-500 hover:bg-blue-100 shadow-blue-200'
-                        }`}>
+                    <div className={`w-36 h-36 rounded-[2rem] flex items-center justify-center text-7xl shadow-lg border-x-4 border-t-4 border-b-[16px] transition-all duration-300 ${isPlaying ? 'bg-rose-50 border-rose-300 text-rose-500 hover:bg-rose-100' : 'bg-blue-50 border-blue-300 text-blue-500 hover:bg-blue-100'
+                        } group-active:border-b-4`}>
                         {isPlaying ? '⏸' : '▶'}
                     </div>
                 </button>
@@ -471,10 +471,10 @@ const RhythmBeatGame: React.FC<{ step: LessonStep, onComplete: () => void }> = (
                                     if (!isPlaying) togglePlay();
                                 }}
                                 className={`
-                                    flex flex-col justify-center px-8 rounded-3xl border-[6px] transition-all w-full h-full text-left active:scale-[0.97]
+                                    flex flex-col justify-center px-8 rounded-3xl border-x-4 border-t-4 transition-all w-full h-full text-left active:translate-y-2 active:border-b-4
                                     ${isSelected
-                                        ? 'bg-blue-50 border-blue-500 shadow-xl text-blue-700 z-10 scale-[1.03]'
-                                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                                        ? 'bg-blue-50 border-b-[8px] border-blue-300 text-blue-700 z-10 -translate-y-2'
+                                        : 'bg-white border-b-[8px] border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                                     }
                                 `}
                             >
@@ -657,15 +657,15 @@ const RhythmMachineGame: React.FC<{ step: LessonStep, onComplete: () => void }> 
                 <button
                     onClick={togglePlay}
                     className={`
-                        w-20 h-20 rounded-full flex items-center justify-center text-3xl shadow-xl border-4 transition-all duration-300
-                        ${isPlaying ? 'bg-rose-50 border-rose-200 text-rose-500 shadow-rose-200' : 'bg-[#58CC02] border-[#46A302] text-white shadow-[#46A302]/50 hover:brightness-110 active:scale-95'}
+                        w-24 h-24 rounded-full flex items-center justify-center text-4xl shadow-xl border-x-4 border-t-4 border-b-[8px] transition-all duration-300 active:border-b-4 active:translate-y-1
+                        ${isPlaying ? 'bg-rose-50 border-rose-300 text-rose-500' : 'bg-[#58CC02] border-[#46A302] text-white hover:brightness-110'}
                     `}
                 >
-                    {isPlaying ? '⏸' : '▶'}
+                    <span className="ml-1">{isPlaying ? '⏸' : '▶'}</span>
                 </button>
 
                 {/* Complete Button */}
-                <button onClick={onComplete} className="px-8 py-4 bg-blue-500 text-white rounded-2xl font-black text-lg shadow-[0_6px_0_rgba(37,99,235,1)] hover:brightness-110 active:translate-y-[6px] active:shadow-none transition-all">
+                <button onClick={onComplete} className="px-8 py-4 bg-[#58CC02] text-white rounded-2xl font-black text-lg shadow-[0_6px_0_rgba(74,171,2,1)] hover:brightness-110 active:translate-y-[6px] active:shadow-none transition-all">
                     다음 레슨
                 </button>
             </div>
@@ -694,10 +694,10 @@ const RhythmMachineGame: React.FC<{ step: LessonStep, onComplete: () => void }> 
                                     if (!isPlaying) togglePlay();
                                 }}
                                 className={`
-                                    py-4 px-4 rounded-2xl border-4 transition-all text-center active:scale-95
+                                    py-4 px-4 rounded-2xl border-x-4 border-t-4 transition-all text-center active:translate-y-1 active:border-b-4
                                     ${isSelected
-                                        ? 'bg-blue-50 border-blue-500 shadow-md text-blue-700 font-black'
-                                        : 'bg-white border-slate-200 text-slate-600 font-bold hover:border-slate-300 hover:bg-slate-50'
+                                        ? 'bg-blue-50 border-b-[6px] border-blue-400 shadow-md text-blue-700 font-black -translate-y-1'
+                                        : 'bg-white border-b-[6px] border-slate-200 text-slate-600 font-bold hover:border-slate-300 hover:bg-slate-50'
                                     }
                                 `}
                             >
@@ -865,14 +865,14 @@ const RhythmMasterGame: React.FC<{ step: LessonStep, onComplete: () => void }> =
                 <button
                     onClick={togglePlay}
                     className={`
-                        w-20 h-20 rounded-full flex items-center justify-center text-3xl shadow-xl border-4 transition-all duration-300
-                        ${isPlaying ? 'bg-rose-50 border-rose-200 text-rose-500 shadow-rose-200' : 'bg-[#58CC02] border-[#46A302] text-white shadow-[#46A302]/50 hover:brightness-110 active:scale-95'}
+                        w-24 h-24 rounded-full flex items-center justify-center text-4xl shadow-xl border-x-4 border-t-4 border-b-[8px] transition-all duration-300 active:border-b-4 active:translate-y-1
+                        ${isPlaying ? 'bg-rose-50 border-rose-300 text-rose-500' : 'bg-[#58CC02] border-[#46A302] text-white hover:brightness-110'}
                     `}
                 >
-                    {isPlaying ? '⏸' : '▶'}
+                    <span className="ml-1">{isPlaying ? '⏸' : '▶'}</span>
                 </button>
 
-                <button onClick={onComplete} className="px-8 py-4 bg-blue-500 text-white rounded-2xl font-black text-lg shadow-[0_6px_0_rgba(37,99,235,1)] hover:brightness-110 active:translate-y-[6px] active:shadow-none transition-all">
+                <button onClick={onComplete} className="px-8 py-4 bg-[#58CC02] text-white rounded-2xl font-black text-lg shadow-[0_6px_0_rgba(74,171,2,1)] hover:brightness-110 active:translate-y-[6px] active:shadow-none transition-all">
                     레슨 완료
                 </button>
             </div>
@@ -1025,15 +1025,13 @@ const PitchPatternGame: React.FC<{ step: LessonStep, onComplete: () => void }> =
     };
 
     return (
-        <div className="flex flex-col items-center justify-between w-full max-w-[1000px] h-[75vh] mx-auto animate-fade-in px-8">
-            <div className="text-center mb-12">
-                <h2 className="text-4xl font-black text-slate-800 mb-2">{step.title}</h2>
-                <p className="text-xl font-bold text-slate-500">{step.description}</p>
-            </div>
+        <div className="flex flex-col items-center gap-6 w-full max-w-[900px] mx-auto px-4 animate-fade-in">
+            <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
+            <p className="text-lg text-slate-500 font-medium animate-slide-up delay-100">{step.description}</p>
 
-            <div className="flex-1 w-full flex items-end justify-center gap-16 lg:gap-32 pb-12">
-                <div className="flex flex-col items-center gap-6 h-full justify-end">
-                    <div className="flex-1 w-32 bg-slate-50 rounded-[48px] relative border-4 border-white shadow-inner overflow-hidden">
+            <div className="flex w-full items-end justify-center gap-16 lg:gap-32 pb-4 mt-8 animate-slide-up delay-200">
+                <div className="flex flex-col items-center gap-6 justify-end">
+                    <div className="w-32 h-[300px] bg-slate-50 rounded-[2rem] relative border-4 border-slate-200 shadow-inner overflow-hidden">
                         <div 
                             className={`absolute bottom-0 left-0 right-0 transition-all duration-200 ease-out border-t-8 border-white
                                 ${isMatched ? 'bg-[#58CC02]' : 'bg-rose-400 opacity-60'}`}
@@ -1043,24 +1041,24 @@ const PitchPatternGame: React.FC<{ step: LessonStep, onComplete: () => void }> =
                     <span className="font-black text-slate-400 uppercase tracking-widest text-sm">나의 목소리</span>
                 </div>
 
-                <div className="w-64 h-full flex flex-col items-center justify-center gap-8 pb-32">
+                <div className="w-64 flex flex-col items-center justify-center gap-8 pb-16">
                     <div className="flex gap-4">
                         {pattern.map((_, i) => (
-                            <div key={i} className={`w-4 h-4 rounded-full ${i < patternIdx ? 'bg-[#58CC02]' : i === patternIdx ? 'bg-blue-500 animate-pulse' : 'bg-slate-200'}`} />
+                            <div key={i} className={`w-5 h-5 rounded-full shadow-inner ${i < patternIdx ? 'bg-[#58CC02]' : i === patternIdx ? 'bg-blue-500 animate-pulse shadow-blue-300' : 'bg-slate-200'}`} />
                         ))}
                     </div>
-                    <span className="text-2xl font-black text-slate-600">
+                    <span className="text-2xl font-black text-slate-600 text-center">
                         {gameState === 'PLAYBACK' ? '패턴을 들어보세요' : `${patternIdx + 1}번째 소리를 따라해보세요!`}
                     </span>
                     {gameState === 'SING' && (
-                        <div className={`w-20 h-20 rounded-full flex items-center justify-center text-white ${isMatched ? 'bg-[#58CC02]' : 'bg-slate-300'}`}>
-                            {isMatched ? <Check size={40} strokeWidth={4} /> : <Music size={40} />}
+                        <div className={`w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl border-4 transition-all duration-300 ${isMatched ? 'bg-[#58CC02] border-[#46A302] scale-110' : 'bg-blue-400 border-blue-500 animate-pulse'}`}>
+                            {isMatched ? <Check size={48} strokeWidth={4} /> : <Music size={40} />}
                         </div>
                     )}
                 </div>
 
-                <div className="flex flex-col items-center gap-6 h-full justify-end">
-                    <div className="flex-1 w-32 bg-slate-50 rounded-[48px] relative border-4 border-white shadow-inner overflow-hidden">
+                <div className="flex flex-col items-center gap-6 justify-end">
+                    <div className="w-32 h-[300px] bg-slate-50 rounded-[2rem] relative border-4 border-slate-200 shadow-inner overflow-hidden">
                         <div 
                             className="absolute bottom-0 left-0 right-0 bg-blue-500 opacity-80 transition-all duration-500 border-t-8 border-white"
                             style={{ height: `${getPos(pattern[patternIdx])}%` }}
@@ -1070,9 +1068,11 @@ const PitchPatternGame: React.FC<{ step: LessonStep, onComplete: () => void }> =
                 </div>
             </div>
 
-            <button onClick={playPattern} disabled={gameState === 'PLAYBACK'} className="px-8 py-3 bg-white text-slate-600 border-2 border-slate-100 rounded-2xl font-bold shadow-sm hover:bg-slate-50 transition-all disabled:opacity-30">
-                다시 듣기
-            </button>
+            <div className="flex gap-4 items-center animate-slide-up delay-300 mt-4">
+                <button onClick={playPattern} disabled={gameState === 'PLAYBACK'} className="px-8 py-4 bg-white text-slate-600 border-4 border-slate-200 rounded-2xl font-black text-lg shadow-sm hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all disabled:opacity-30">
+                    다시 듣기
+                </button>
+            </div>
         </div>
     );
 };
@@ -1177,15 +1177,13 @@ const PitchMemoryGame: React.FC<{ step: LessonStep, onComplete: () => void }> = 
     };
 
     return (
-        <div className="flex flex-col items-center justify-between w-full max-w-[1000px] h-[75vh] mx-auto animate-fade-in px-8">
-            <div className="text-center mb-12">
-                <h2 className="text-4xl font-black text-slate-800 mb-2">{step.title}</h2>
-                <p className="text-xl font-bold text-slate-500">{step.description}</p>
-            </div>
+        <div className="flex flex-col items-center gap-6 w-full max-w-[900px] mx-auto px-4 animate-fade-in">
+            <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
+            <p className="text-lg text-slate-500 font-medium animate-slide-up delay-100">{step.description}</p>
 
-            <div className="flex-1 w-full flex items-end justify-center gap-16 lg:gap-32 pb-12">
-                <div className="flex flex-col items-center gap-6 h-full justify-end">
-                    <div className="flex-1 w-32 bg-slate-50 rounded-[48px] relative border-4 border-white shadow-inner overflow-hidden">
+            <div className="flex w-full items-end justify-center gap-16 lg:gap-32 pb-4 mt-8 animate-slide-up delay-200">
+                <div className="flex flex-col items-center gap-6 justify-end">
+                    <div className="w-32 h-[300px] bg-slate-50 rounded-[2rem] relative border-4 border-slate-200 shadow-inner overflow-hidden">
                         <div 
                             className={`absolute bottom-0 left-0 right-0 transition-all duration-200 ease-out border-t-8 border-white
                                 ${isMatched ? 'bg-[#58CC02]' : 'bg-rose-400 opacity-60'}`}
@@ -1198,10 +1196,10 @@ const PitchMemoryGame: React.FC<{ step: LessonStep, onComplete: () => void }> = 
                     <span className="font-black text-slate-400 uppercase tracking-widest text-sm">나의 목소리</span>
                 </div>
 
-                <div className="w-64 h-full flex flex-col items-center justify-center gap-8 pb-32">
+                <div className="w-64 flex flex-col items-center justify-center gap-8 pb-16">
                     {gameState === 'LISTEN' && (
                         <div className="flex flex-col items-center gap-4 animate-pulse">
-                            <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center text-white">
+                            <div className="w-24 h-24 bg-blue-500 border-4 border-blue-600 shadow-xl rounded-full flex items-center justify-center text-white">
                                 <Volume2 size={48} strokeWidth={3} />
                             </div>
                             <span className="text-2xl font-black text-blue-500">잘 들어보세요!</span>
@@ -1209,34 +1207,36 @@ const PitchMemoryGame: React.FC<{ step: LessonStep, onComplete: () => void }> = 
                     )}
                     {gameState === 'WAIT' && (
                         <div className="flex flex-col items-center gap-4">
-                            <div className="text-8xl font-black text-slate-300 animate-scale-in">{countdown}</div>
+                            <div className="text-7xl font-black text-slate-300 animate-scale-in">{countdown}</div>
                             <span className="text-2xl font-black text-slate-400">잠시만 기다려요...</span>
                         </div>
                     )}
                     {gameState === 'ACT' && (
                         <div className="flex flex-col items-center gap-4">
-                            <div className={`w-24 h-24 rounded-full flex items-center justify-center text-white animate-bounce shadow-xl ${isMatched ? 'bg-[#58CC02]' : 'bg-rose-500'}`}>
-                                <Star size={48} fill="currentColor" strokeWidth={0} />
+                            <div className={`w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl border-4 transition-all duration-300 ${isMatched ? 'bg-[#58CC02] border-[#46A302] scale-110' : 'bg-rose-400 border-rose-500 animate-pulse'}`}>
+                                <Star size={44} fill="currentColor" strokeWidth={0} />
                             </div>
-                            <span className={`text-2xl font-black ${isMatched ? 'text-[#58CC02]' : 'text-rose-500'}`}>
+                            <span className={`text-xl font-black text-center ${isMatched ? 'text-[#58CC02]' : 'text-rose-500'}`}>
                                 {isMatched ? '대단해요!' : '기억한 음을 불러보세요!'}
                             </span>
                         </div>
                     )}
                 </div>
 
-                <div className="flex flex-col items-center gap-6 h-full justify-end">
-                    <div className="flex-1 w-32 bg-slate-50 rounded-[48px] relative border-4 border-white shadow-inner overflow-hidden">
+                <div className="flex flex-col items-center gap-6 justify-end">
+                    <div className="w-32 h-[300px] bg-slate-50 rounded-[2rem] relative border-4 border-slate-200 shadow-inner overflow-hidden">
                         <div 
                             className="absolute bottom-0 left-0 right-0 bg-blue-500 transition-all duration-1000 border-t-8 border-white"
                             style={{ height: gameState === 'LISTEN' ? `${getPos(targetFreq)}%` : '0%' }}
                         />
                     </div>
-                    <span className="font-black text-slate-200 uppercase tracking-widest text-sm">목표 음높이</span>
+                    <span className="font-black text-blue-400 uppercase tracking-widest text-sm">목표 음높이</span>
                 </div>
             </div>
 
-            <div className="h-20" />
+            <div className="flex gap-4 items-center animate-slide-up delay-300 mt-4 h-16">
+                {/* Empty spacer for matching height with other views */}
+            </div>
         </div>
     );
 };
@@ -1323,7 +1323,7 @@ const PitchMatchingGame: React.FC<{ step: LessonStep, onComplete: () => void }> 
         if (pitch !== -1 && pitch > minFreq && pitch < maxFreq) {
             setUserFreq(pitch);
             const diff = Math.abs(Math.log2(pitch / targetFreq));
-            if (diff < 0.03) {
+            if (diff < 0.08) {
                 setGuidance("완벽해요! 그대로 유지하세요.");
                 if (!isMatched) {
                     setIsMatched(true);
@@ -1344,16 +1344,14 @@ const PitchMatchingGame: React.FC<{ step: LessonStep, onComplete: () => void }> 
     };
 
     return (
-        <div className="flex flex-col items-center justify-between w-full max-w-[1000px] h-[75vh] mx-auto animate-fade-in px-8">
-            <div className="text-center mb-8">
-                <h2 className="text-4xl font-black text-slate-800 mb-2">{step.title}</h2>
-                <p className="text-xl font-bold text-slate-500">{step.description}</p>
-            </div>
+        <div className="flex flex-col items-center gap-6 w-full max-w-[900px] mx-auto px-4 animate-fade-in">
+            <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
+            <p className="text-lg text-slate-500 font-medium animate-slide-up delay-100">{step.description}</p>
 
-            <div className="flex-1 w-full flex items-end justify-center gap-16 lg:gap-32 pb-12">
+            <div className="flex w-full items-end justify-center gap-16 lg:gap-32 pb-4 mt-8 animate-slide-up delay-200">
                 {/* User Voice Bar */}
-                <div className="flex flex-col items-center gap-6 h-full justify-end">
-                    <div className="flex-1 w-32 bg-slate-50 rounded-[48px] relative border-4 border-white shadow-inner overflow-hidden">
+                <div className="flex flex-col items-center gap-6 justify-end">
+                    <div className="w-32 h-[300px] bg-slate-50 rounded-[2rem] relative border-4 border-slate-200 shadow-inner overflow-hidden">
                         <div 
                             className={`absolute bottom-0 left-0 right-0 transition-all duration-200 ease-out border-t-8 border-white
                                 ${isMatched ? 'bg-[#58CC02]' : 'bg-rose-400 opacity-60'}`}
@@ -1371,11 +1369,19 @@ const PitchMatchingGame: React.FC<{ step: LessonStep, onComplete: () => void }> 
                 </div>
 
                 {/* Target Objective Bar */}
-                <div className="flex flex-col items-center gap-6 h-full justify-end">
+                <div className="flex flex-col items-center gap-6 justify-end">
                     <div 
-                        className="flex-1 w-32 bg-slate-50 rounded-[48px] relative border-4 border-white shadow-inner overflow-hidden cursor-pointer group"
+                        className="w-32 h-[300px] bg-slate-50 rounded-[2rem] relative border-4 border-slate-200 shadow-inner overflow-hidden cursor-pointer group"
                         onClick={playRef}
                     >
+                        {/* Safe Zone Indicator */}
+                        <div 
+                            className="absolute left-0 right-0 bg-blue-500/10 transition-all duration-500 pointer-events-none"
+                            style={{ 
+                                bottom: `${Math.max(0, targetPos - 8)}%`, 
+                                height: '16%' 
+                            }}
+                        />
                         <div 
                             className="absolute bottom-0 left-0 right-0 bg-blue-500 opacity-80 transition-all duration-500 border-t-8 border-white"
                             style={{ height: `${targetPos}%` }}
@@ -1390,10 +1396,10 @@ const PitchMatchingGame: React.FC<{ step: LessonStep, onComplete: () => void }> 
             </div>
 
             {/* Real-time Guidance */}
-            <div className="h-32 w-full flex flex-col items-center justify-center gap-4">
+            <div className="h-32 w-full flex flex-col items-center justify-center gap-4 animate-slide-up delay-300">
                 <div className={`
-                    px-10 py-5 rounded-[28px] shadow-xl text-3xl font-black text-center transition-all duration-300
-                    ${isMatched ? 'bg-[#58CC02] text-white scale-110 shadow-green-100' : 'bg-white text-slate-700 border-2 border-slate-100'}
+                    px-10 py-5 rounded-[2rem] shadow-xl text-2xl font-black text-center transition-all duration-300 border-4
+                    ${isMatched ? 'bg-[#58CC02] border-[#46A302] text-white scale-110' : 'bg-white text-slate-700 border-slate-200 shadow-sm'}
                 `}>
                     {guidance}
                 </div>
@@ -1401,7 +1407,7 @@ const PitchMatchingGame: React.FC<{ step: LessonStep, onComplete: () => void }> 
                 {!isMicOn && (
                     <button 
                         onClick={startMic}
-                        className="bg-slate-800 text-white px-8 py-3 rounded-2xl font-black hover:bg-slate-700 transition-colors flex items-center gap-2"
+                        className="bg-[#58CC02] text-white px-8 py-4 rounded-2xl font-black text-lg shadow-[0_6px_0_rgba(74,171,2,1)] hover:brightness-110 active:translate-y-[6px] active:shadow-none transition-all flex items-center gap-2"
                     >
                         🎙️ 마이크 켜기
                     </button>
@@ -1477,21 +1483,18 @@ const PitchQuizGame: React.FC<{ step: LessonStep, onComplete: () => void }> = ({
     };
 
     return (
-        <div className="flex flex-col items-center justify-between w-full max-w-[800px] h-[70vh] mx-auto animate-fade-in px-8">
-            <div className="text-center mb-8 relative z-10 w-full">
-                <h2 className="text-4xl font-black text-slate-800 mb-2">어떤 소리가 더 높을까요?</h2>
-                <p className="text-xl font-bold text-slate-500">{step.description}</p>
-            </div>
+        <div className="flex flex-col items-center gap-6 w-full max-w-[900px] mx-auto px-4 animate-fade-in">
+            <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
+            <p className="text-lg text-slate-500 font-medium animate-slide-up delay-100">{step.description}</p>
 
-            <div className="flex-1 w-full flex flex-col items-center justify-center gap-12 relative">
-                
+            <div className="flex-1 w-full flex flex-col items-center justify-center gap-12 mt-8 animate-slide-up delay-200">
                 {/* Clickable Sound Indicators */}
                 <div className="flex gap-12 sm:gap-16">
                     <button
                         onClick={() => handleChoice(0)}
                         disabled={isPlaying}
                         className={`
-                            w-40 h-48 rounded-[40px] border-b-[12px] flex flex-col items-center justify-center transition-all active:translate-y-2 active:border-b-4
+                            w-40 h-48 rounded-[2rem] border-b-[12px] border-x-4 border-t-4 flex flex-col items-center justify-center transition-all active:translate-y-2 active:border-b-4
                             ${activeSound === 'A' ? 'bg-blue-500 border-blue-600 scale-105 shadow-2xl text-white' : 
                               feedback === 'error' && (step.options?.[0] || 0) < (step.options?.[1] || 0) ? 'bg-slate-100 border-slate-200 text-slate-300' :
                               'bg-white border-slate-200 text-slate-400 hover:border-blue-300 hover:text-blue-500'}
@@ -1506,7 +1509,7 @@ const PitchQuizGame: React.FC<{ step: LessonStep, onComplete: () => void }> = ({
                         onClick={() => handleChoice(1)}
                         disabled={isPlaying}
                         className={`
-                            w-40 h-48 rounded-[40px] border-b-[12px] flex flex-col items-center justify-center transition-all active:translate-y-2 active:border-b-4
+                            w-40 h-48 rounded-[2rem] border-b-[12px] border-x-4 border-t-4 flex flex-col items-center justify-center transition-all active:translate-y-2 active:border-b-4
                             ${activeSound === 'B' ? 'bg-amber-500 border-amber-600 scale-105 shadow-2xl text-white' : 
                               feedback === 'error' && (step.options?.[1] || 0) < (step.options?.[0] || 0) ? 'bg-slate-100 border-slate-200 text-slate-300' :
                               'bg-white border-slate-200 text-slate-400 hover:border-amber-300 hover:text-amber-500'}
@@ -1520,26 +1523,20 @@ const PitchQuizGame: React.FC<{ step: LessonStep, onComplete: () => void }> = ({
 
                 {/* Feedback Prompt */}
                 {feedback === 'error' && (
-                    <div className="absolute -bottom-12 animate-bounce text-rose-500 font-bold text-xl flex items-center gap-2">
+                    <div className="animate-bounce text-rose-500 font-bold text-xl flex items-center gap-2 mt-4">
                         <span>😮 틀렸어요! 다시 들어볼까요?</span>
                     </div>
                 )}
             </div>
 
             {/* Replay Instructions */}
-            <div className="mt-8 text-center">
+            <div className="flex gap-4 items-center animate-slide-up delay-300 mt-8 mb-4">
                 <button 
                     onClick={playSounds}
                     disabled={isPlaying}
-                    className="group flex flex-col items-center gap-2"
+                    className="px-8 py-4 bg-white text-slate-600 border-4 border-slate-200 rounded-2xl font-black text-lg shadow-sm hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all disabled:opacity-30"
                 >
-                    <div className={`
-                        w-16 h-16 rounded-2xl flex items-center justify-center transition-all
-                        ${isPlaying ? 'bg-slate-100 text-slate-300' : 'bg-white text-slate-600 border-2 border-slate-100 shadow-sm group-hover:bg-slate-50 group-active:scale-95'}
-                    `}>
-                        <Volume2 size={28} />
-                    </div>
-                    <span className="text-sm font-bold text-slate-400">다시 듣기</span>
+                    다시 듣기
                 </button>
             </div>
         </div>
@@ -1602,10 +1599,10 @@ const PitchComparisonGame: React.FC<{ step: LessonStep, onComplete: () => void }
 
         // Proximity logic
         const diff = Math.abs(Math.log2(userFreq / targetFreq));
-        const proximity = Math.max(0, 1 - diff * 10); // 0.1 octave diff -> 0 proximity
+        const proximity = Math.max(0, 1 - diff * 4); // 0.25 octave diff -> 0 proximity
         setMatchProgress(proximity);
 
-        if (proximity > 0.95) {
+        if (proximity > 0.85) {
             if (!isMatched && !hasCompletedRef.current) {
                 setIsMatched(true);
                 hasCompletedRef.current = true;
@@ -1652,26 +1649,24 @@ const PitchComparisonGame: React.FC<{ step: LessonStep, onComplete: () => void }
     };
 
     return (
-        <div className="flex flex-col items-center justify-between w-full max-w-[1200px] h-[75vh] mx-auto animate-fade-in px-8">
-            <div className="text-center mb-12 relative z-10 w-full">
-                <h2 className="text-4xl font-black text-slate-800 mb-2">{step.title}</h2>
-                <p className="text-xl font-bold text-slate-500">{step.description}</p>
-            </div>
+        <div className="flex flex-col items-center gap-6 w-full max-w-[900px] mx-auto px-4 animate-fade-in">
+            <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
+            <p className="text-lg text-slate-500 font-medium animate-slide-up delay-100">{step.description}</p>
 
-            <div className="flex-1 w-full flex items-center justify-center gap-16 lg:gap-32 h-full py-8">
+            <div className="flex w-full items-center justify-center gap-16 lg:gap-32 h-[400px] mt-8 animate-slide-up delay-200">
                 {/* Left: Reference Guide (Thin Slider) */}
                 <div className="h-full flex flex-col items-center gap-4">
-                    <div className="flex-1 w-12 bg-slate-100 rounded-full relative border-2 border-slate-200 overflow-hidden">
+                    <div className="flex-1 w-16 bg-slate-50 rounded-full relative border-4 border-slate-200 overflow-hidden shadow-inner">
                         {/* Target Marker */}
                         <div 
-                            className="absolute left-0 right-0 h-2 bg-blue-500 rounded-full z-10 transition-all duration-500"
+                            className="absolute left-0 right-0 h-3 bg-blue-500 rounded-full z-10 transition-all duration-500"
                             style={{ 
                                 bottom: `${(Math.log2(targetFreq / 110) / 3) * 100}%`,
                                 transform: 'translateY(50%)',
                                 boxShadow: isRefPlaying ? '0 0 15px 5px rgba(59,130,246,0.5)' : 'none'
                             }}
                         />
-                        {/* Reference Interaction Button (Overlap or separate) */}
+                        {/* Reference Interaction Button */}
                         <button
                             onMouseDown={handleRefStart}
                             onMouseUp={handleRefEnd}
@@ -1683,7 +1678,7 @@ const PitchComparisonGame: React.FC<{ step: LessonStep, onComplete: () => void }
                                 ${isRefPlaying ? 'bg-blue-500/10' : 'hover:bg-slate-200/50'}
                             `}
                         >
-                            <Volume2 size={24} className={isRefPlaying ? 'text-blue-500' : 'text-slate-300'} strokeWidth={3} />
+                            <Volume2 size={28} className={isRefPlaying ? 'text-blue-500' : 'text-slate-300'} strokeWidth={3} />
                         </button>
                     </div>
                     <span className="font-black text-slate-400 uppercase tracking-widest text-[10px] text-center leading-tight">
@@ -1692,21 +1687,23 @@ const PitchComparisonGame: React.FC<{ step: LessonStep, onComplete: () => void }
                 </div>
 
                 {/* Center: Match Slider */}
-                <div className="relative group flex items-center justify-center w-[300px] h-full">
+                <div className="relative group flex items-center justify-center w-[200px] h-full">
                     {/* Proximity Halo */}
                     <div 
-                        className="absolute inset-0 rounded-[64px] transition-all duration-300 pointer-events-none"
+                        className="absolute inset-[0px] rounded-[2.5rem] pointer-events-none border-[rgba(88,204,2,0.5)]"
                         style={{ 
-                            boxShadow: `0 0 ${matchProgress * 100}px ${matchProgress * 40}px rgba(88, 204, 2, ${matchProgress * 0.4})`,
-                            border: `${matchProgress * 8}px solid rgba(88, 204, 2, ${matchProgress})`,
-                            transform: `scale(${1 + (1 - matchProgress) * 0.1})`
+                            boxShadow: `0 0 ${matchProgress * 30}px ${matchProgress * 15}px rgba(88, 204, 2, ${matchProgress * 0.6})`,
+                            borderWidth: `${matchProgress * 4}px`,
+                            borderStyle: 'solid',
+                            transition: 'all 75ms ease-out',
+                            opacity: matchProgress
                         }}
                     />
 
                     {/* Interactive Slider Container */}
                     <div 
                         ref={containerRef}
-                        className="w-full h-full bg-slate-50 rounded-[48px] relative overflow-hidden shadow-inner border-4 border-white cursor-pointer"
+                        className="w-full h-full bg-slate-50 rounded-[2rem] relative overflow-hidden shadow-inner border-4 border-slate-200 cursor-pointer"
                         onMouseDown={handleInteraction}
                         onMouseMove={(e) => e.buttons === 1 && handleInteraction(e)}
                         onMouseUp={handleInteractionEnd}
@@ -1722,15 +1719,15 @@ const PitchComparisonGame: React.FC<{ step: LessonStep, onComplete: () => void }
 
                         {/* Slider Handle (Dart) */}
                         <div 
-                            className="absolute left-1/2 -translate-x-1/2 w-20 h-2 bg-slate-800 rounded-full z-20 pointer-events-none transition-none"
+                            className="absolute left-1/2 -translate-x-1/2 w-16 h-2 bg-slate-800 rounded-full z-20 pointer-events-none transition-none"
                             style={{ bottom: `${value * 100}%` }}
                         >
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full border-4 border-slate-800 shadow-lg flex items-center justify-center">
-                                <Music size={24} className={isUserPlaying ? 'text-slate-800' : 'text-slate-200'} strokeWidth={3} />
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full border-4 border-slate-800 shadow-lg flex items-center justify-center">
+                                <Music size={28} className={isUserPlaying ? 'text-slate-800' : 'text-slate-200'} strokeWidth={3} />
                             </div>
                         </div>
 
-                        {/* Visual Guide Layers (Similar to Intro but cleaner) */}
+                        {/* Visual Guide Layers */}
                         <div className="absolute inset-0 opacity-10 pointer-events-none">
                             <div className="h-full w-full flex flex-col items-center justify-between py-12 text-slate-300 font-bold uppercase text-xs">
                                 <span>High</span>
@@ -1746,18 +1743,18 @@ const PitchComparisonGame: React.FC<{ step: LessonStep, onComplete: () => void }
                 </div>
 
                 {/* Right: Feedback Zone */}
-                <div className="w-32 flex flex-col items-center gap-6">
+                <div className="w-32 flex flex-col items-center justify-center gap-6 h-full">
                     <div 
                         className={`
-                            w-32 h-32 rounded-full flex items-center justify-center transition-all duration-500
-                            ${isMatched ? 'bg-[#58CC02] text-white scale-110' : 'bg-slate-100 text-slate-300'}
+                            w-32 h-32 rounded-full flex items-center justify-center transition-all duration-500 border-4 shadow-xl
+                            ${isMatched ? 'bg-[#58CC02] border-[#46A302] text-white scale-110' : 'bg-slate-100 border-slate-200 text-slate-300 shadow-inner'}
                         `}
                     >
                         {isMatched ? <Check size={56} strokeWidth={4} className="animate-pop-in" /> : <Star size={56} fill="currentColor" strokeWidth={0} className="opacity-30" />}
                     </div>
                     <div className="flex flex-col items-center gap-1 h-8">
                         {isMatched ? (
-                            <span className="font-black text-[#58CC02] animate-bounce shrink-0">그대로 유지하세요!</span>
+                            <span className="font-black text-[#58CC02] animate-bounce shrink-0 text-center">그대로 유지하세요!</span>
                         ) : matchProgress > 0.6 ? (
                             <span className="font-bold text-slate-400">거의 다 왔어요!</span>
                         ) : null}
@@ -1766,8 +1763,8 @@ const PitchComparisonGame: React.FC<{ step: LessonStep, onComplete: () => void }
             </div>
 
             {/* Hint message */}
-            <div className="h-20 flex items-center justify-center w-full">
-                <div className="bg-white px-8 py-4 rounded-2xl shadow-sm border border-slate-100 text-slate-500 font-bold flex gap-3 items-center">
+            <div className="flex items-center justify-center w-full animate-slide-up delay-300 mt-8 mb-4">
+                <div className="bg-white px-8 py-4 rounded-2xl shadow-sm border-2 border-slate-100 text-slate-500 font-bold flex gap-3 items-center">
                     <span className="text-2xl">👂</span>
                     두 소리가 똑같아지면 화면이 반짝거려요!
                 </div>
@@ -1824,7 +1821,8 @@ const PitchIntroGame: React.FC<{ step: LessonStep, onComplete: () => void }> = (
     };
 
     const stopAudio = () => {
-        volRef.current?.volume.rampTo(-Infinity, 0.2);
+        if (isDemoPlaying) return;
+        volRef.current?.volume.rampTo(-80, 0.2);
         setIsPlaying(false);
     };
 
@@ -1841,8 +1839,8 @@ const PitchIntroGame: React.FC<{ step: LessonStep, onComplete: () => void }> = (
             if (i >= sequence.length) {
                 clearInterval(interval);
                 setIsDemoPlaying(false);
-                volRef.current?.volume.rampTo(-Infinity, 0.5);
-                setTimeout(onComplete, 1000);
+                volRef.current?.volume.rampTo(-80, 0.6); // Fades out smoothly instead of cutting off
+                setTimeout(onComplete, 1200);
                 return;
             }
             setValue(sequence[i]);
@@ -1866,89 +1864,95 @@ const PitchIntroGame: React.FC<{ step: LessonStep, onComplete: () => void }> = (
     };
 
     return (
-        <div className="flex flex-col items-center justify-between w-full max-w-[1000px] h-[70vh] mx-auto animate-fade-in relative">
+        <div className="flex flex-col items-center gap-6 w-full max-w-[900px] mx-auto animate-fade-in relative px-4 h-full">
             
             {/* Instruction Header */}
-            <div className="text-center mb-8 relative z-10">
-                <h2 className="text-4xl font-black text-slate-800 mb-2">{step.title}</h2>
-                <p className="text-xl font-bold text-slate-500">{step.description}</p>
-            </div>
+            <h2 className="text-3xl font-black text-slate-800 animate-slide-up mt-8">{step.title}</h2>
+            <p className="text-lg text-slate-500 font-medium animate-slide-up delay-100 mb-4">{step.description}</p>
 
             {/* Vertical Slider Experience */}
             <div 
                 ref={containerRef}
-                className="flex-1 w-full max-w-[400px] bg-slate-100 rounded-[48px] relative overflow-hidden shadow-inner border-4 border-white cursor-pointer group"
+                className="w-full max-w-[400px] min-h-[400px] flex-1 bg-sky-200 rounded-[3rem] relative overflow-hidden shadow-inner border-[6px] border-slate-200 cursor-pointer group animate-slide-up delay-200"
                 onMouseDown={handleInteraction}
                 onMouseMove={(e) => e.buttons === 1 && handleInteraction(e)}
                 onMouseUp={stopAudio}
+                onMouseLeave={stopAudio}
                 onTouchStart={handleInteraction}
                 onTouchMove={handleInteraction}
                 onTouchEnd={stopAudio}
             >
-                {/* Visual Layers (Organic Skeches) */}
-                <div className="absolute inset-0 z-0 transition-colors duration-500"
-                    style={{ backgroundColor: getBgColor().replace('opacity', '0.05') }}>
-                    
-                    {/* Red Scribble (Top) */}
-                    <div className="absolute top-0 w-full h-1/3 transition-opacity duration-300 pointer-events-none"
-                        style={{ opacity: value > 0.6 ? (value - 0.6) * 2.5 : 0 }}>
-                        <svg className="w-full h-full text-red-400/30" viewBox="0 0 100 100" preserveAspectRatio="none">
-                            <path d="M0,20 Q20,10 40,30 T80,10 T100,40 V100 H0 Z" fill="currentColor" />
-                            <path d="M0,40 Q10,60 30,50 T70,70 T100,50" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="5,5" />
-                        </svg>
-                    </div>
+                {/* Background Sky Gradient */}
+                <div 
+                    className="absolute inset-0 transition-opacity duration-300 pointer-events-none"
+                    style={{ background: 'linear-gradient(to bottom, #7dd3fc 0%, #bae6fd 60%, #e0f2fe 100%)' }}
+                />
 
-                    {/* Yellow Scribble (Middle) */}
-                    <div className="absolute top-1/3 w-full h-1/3 transition-opacity duration-300 pointer-events-none"
-                         style={{ opacity: 1 - Math.abs(value - 0.5) * 2 }}>
-                        <svg className="w-full h-full text-amber-400/30" viewBox="0 0 100 100" preserveAspectRatio="none">
-                            <path d="M0,50 Q25,30 50,50 T100,50 V100 H0 Z" fill="currentColor" />
-                            <circle cx="20" cy="30" r="10" fill="currentColor" />
-                            <circle cx="80" cy="40" r="15" fill="currentColor" />
-                        </svg>
-                    </div>
-
-                    {/* Green Scribble (Bottom) */}
-                    <div className="absolute bottom-0 w-full h-1/3 transition-opacity duration-300 pointer-events-none"
-                        style={{ opacity: value < 0.4 ? (0.4 - value) * 2.5 : 0 }}>
-                        <svg className="w-full h-full text-emerald-400/30" viewBox="0 0 100 100" preserveAspectRatio="none">
-                            <path d="M0,80 Q30,95 60,80 T100,90 V100 H0 Z" fill="currentColor" />
-                            <path d="M10,70 L30,90 L50,70 L70,90 L90,70" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                        </svg>
+                {/* Sky / Clouds Graphic (Top) */}
+                <div className="absolute top-0 w-full h-40 pointer-events-none opacity-80">
+                    <div className="absolute top-4 left-6 w-16 h-8 bg-white/70 rounded-full blur-[1px]"></div>
+                    <div className="absolute top-2 left-10 w-12 h-10 bg-white/80 rounded-full blur-[1px]"></div>
+                    <div className="absolute top-12 right-8 w-20 h-10 bg-white/70 rounded-full blur-[1px]"></div>
+                    <div className="absolute top-8 right-12 w-16 h-12 bg-white/80 rounded-full blur-[1px]"></div>
+                    <div className="absolute top-6 left-6 flex flex-col items-center">
+                        <span className="font-black text-sky-800 tracking-widest text-lg bg-white/40 px-3 py-1 rounded-full shadow-sm backdrop-blur-sm">하늘</span>
                     </div>
                 </div>
+
+                {/* Ground / Grass Graphic (Bottom) */}
+                <div className="absolute bottom-0 w-full h-32 pointer-events-none">
+                    <div className="absolute bottom-0 w-full h-24 bg-[#8b5a2b] transition-all duration-300" />
+                    <div className="absolute bottom-16 w-[150%] h-24 bg-emerald-400 rounded-[100%] -left-1/4 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] transition-all duration-300" />
+                    <div className="absolute bottom-12 w-[120%] h-24 bg-emerald-500 rounded-[100%] right-[-10%] shadow-[0_-4px_10px_rgba(0,0,0,0.1)] transition-all duration-300" />
+                    <div className="absolute bottom-6 left-6 z-10 flex flex-col items-center">
+                        <span className="font-black text-amber-900 tracking-widest text-lg bg-orange-100/80 px-3 py-1 rounded-full shadow-sm backdrop-blur-sm">땅</span>
+                    </div>
+                </div>
+
+                {/* Active Highlight Overlay (based on pitch) */}
+                <div className="absolute inset-0 pointer-events-none transition-colors duration-200"
+                    style={{ backgroundColor: `rgba(255,255,255,${value * 0.3})` }} />
 
                 {/* The "Handle" or Indicator Pillar */}
                 <div 
-                    className="absolute left-1/2 -translate-x-1/2 w-16 bg-white rounded-full shadow-2xl border-4 border-slate-200 z-20 pointer-events-none"
+                    className="absolute left-1/2 -translate-x-1/2 w-20 h-20 bg-white rounded-full shadow-[0_8px_16px_rgba(0,0,0,0.2)] border-4 border-slate-100 z-20 pointer-events-none transition-all duration-75 flex items-center justify-center"
                     style={{ 
-                        bottom: `${value * 100}%`,
-                        height: '120px',
-                        transform: `translate(-50%, 50%) scale(${1 + value * 0.5})`, // Grows as it goes up
-                        backgroundColor: getBgColor().replace('opacity', '1')
+                        bottom: `calc(${value * 100}% - 40px)`,
+                        transform: `scale(${1 + value * 0.2})`, // Grows slightly as it goes up
                     }}
                 >
+                    <div className="w-12 h-12 rounded-full shadow-inner flex items-center justify-center" style={{
+                        backgroundColor: isPlaying || isDemoPlaying ? '#ea4335' : '#e2e8f0',
+                        boxShadow: isPlaying || isDemoPlaying ? 'inset 0 4px 8px rgba(0,0,0,0.2)' : 'inset 0 2px 4px rgba(0,0,0,0.1)'
+                    }}>
+                        <Volume2 size={24} className={isPlaying || isDemoPlaying ? 'text-white' : 'text-slate-400'} strokeWidth={3} />
+                    </div>
                 </div>
 
-                {/* Visual Height Lines */}
-                <div className="absolute inset-y-12 left-8 flex flex-col justify-between text-slate-400 font-black text-sm uppercase tracking-tighter pointer-events-none opacity-50">
-                    <span>High ☁️</span>
-                    <span>Low 🌊</span>
-                </div>
+                {/* Drag instruction overlay */}
+                {(!isPlaying && !isDemoPlaying && step.type === 'play') && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30 opacity-60 animate-pulse">
+                        <div className="bg-slate-800/60 text-white font-bold px-4 py-2 rounded-full flex flex-col items-center text-sm shadow-lg">
+                            <ChevronUp size={20} />
+                            위아래로 움직여보세요
+                            <ChevronDown size={20} />
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Bottom Actions */}
-            <div className="mt-12 flex flex-col items-center gap-4">
+            <div className="mt-8 mb-4 flex flex-col items-center gap-4 animate-slide-up delay-300">
                 {step.type === 'play' ? (
                     <button 
                         onClick={onComplete}
-                        className="px-12 py-6 bg-[#58CC02] text-white rounded-[24px] font-black text-2xl shadow-[0_8px_0_rgba(74,171,2,1)] hover:brightness-110 active:translate-y-[8px] active:shadow-none transition-all"
+                        className="px-10 py-5 bg-[#58CC02] text-white rounded-2xl font-black text-2xl shadow-[0_8px_0_rgba(74,171,2,1)] hover:brightness-110 active:translate-y-[8px] active:shadow-none transition-all"
                     >
-                        이해했어요!
+                        다음 레슨
                     </button>
                 ) : (
-                    <div className="flex gap-2 items-center text-slate-400 font-bold">
-                        <div className="w-3 h-3 bg-[#4285F4] rounded-full animate-pulse" />
+                    <div className="flex gap-2 items-center text-slate-500 font-bold bg-slate-50 px-8 py-4 rounded-full shadow-sm border-2 border-slate-200 text-lg">
+                        <div className="w-4 h-4 bg-[#4285F4] rounded-full animate-pulse mr-2" />
                         달이가 소리를 들려주는 중...
                     </div>
                 )}
@@ -2004,14 +2008,14 @@ const RhythmGame: React.FC<{ step: LessonStep, onComplete: () => void, membrane:
         const isPulse = step.demoType === 'pulse';
 
         return (
-            <div className="text-center flex flex-col items-center gap-8 w-full">
-                <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
-                <p className="text-xl text-slate-500 font-medium animate-slide-up delay-100">{step.description}</p>
+            <div className="flex flex-col items-center gap-6 w-full max-w-[900px] mx-auto px-4 animate-fade-in text-center h-full">
+                <h2 className="text-3xl font-black text-slate-800 animate-slide-up mt-8">{step.title}</h2>
+                <p className="text-lg text-slate-500 font-medium animate-slide-up delay-100 mb-4">{step.description}</p>
 
                 {/* Visualizer Area */}
-                <div className="h-32 flex items-center justify-center w-full animate-slide-up delay-200">
+                <div className="flex-1 flex items-center justify-center w-full animate-slide-up delay-200">
                     {isPulse && (
-                        <div className="flex gap-4">
+                        <div className="flex gap-4 p-8 bg-slate-50 rounded-full border-4 border-slate-200">
                             {[0, 1, 2, 3].map(i => (
                                 <div
                                     key={i}
@@ -2026,10 +2030,10 @@ const RhythmGame: React.FC<{ step: LessonStep, onComplete: () => void, membrane:
 
                     {isConcept && (
                         <div className={`
-                            w-32 h-32 rounded-full flex items-center justify-center transition-all duration-300
-                            ${activeIndex !== -1 ? 'bg-rose-400 scale-125 shadow-rose-400/50 shadow-2xl' : 'bg-slate-100'}
+                            w-40 h-40 rounded-full flex items-center justify-center transition-all duration-300 border-b-[12px] border-x-4 border-t-4
+                            ${activeIndex !== -1 ? 'bg-rose-400 border-rose-600 scale-125 shadow-rose-400/50 shadow-2xl' : 'bg-slate-50 border-slate-200'}
                         `}>
-                            <Heart size={48} className={`text-white transition-all duration-300 ${activeIndex !== -1 ? 'scale-110' : 'scale-100 text-rose-300'}`} fill="currentColor" />
+                            <Heart size={64} className={`transition-all duration-300 ${activeIndex !== -1 ? 'scale-110 text-white' : 'scale-100 text-rose-300'}`} fill="currentColor" />
                         </div>
                     )}
                 </div>
@@ -2038,8 +2042,8 @@ const RhythmGame: React.FC<{ step: LessonStep, onComplete: () => void, membrane:
                     onClick={playConcept}
                     disabled={isPlaying}
                     className={`
-                        w-64 py-4 rounded-2xl text-white font-black text-xl shadow-[0_6px_0_rgba(0,0,0,0.2)] transition-all flex items-center justify-center gap-2
-                        ${isPlaying ? 'bg-slate-300 shadow-none translate-y-[6px]' : 'bg-[#4285F4] hover:brightness-110 active:translate-y-[6px] active:shadow-none'}
+                        px-12 py-4 rounded-2xl text-white font-black text-xl shadow-[0_6px_0_rgba(74,171,2,1)] transition-all flex items-center justify-center gap-2 mt-8 animate-slide-up delay-300
+                        ${isPlaying ? 'bg-slate-300 shadow-none translate-y-[6px]' : 'bg-[#58CC02] hover:brightness-110 active:translate-y-[6px] active:shadow-none'}
                     `}
                 >
                     <Volume2 size={28} />
@@ -2112,27 +2116,27 @@ const RhythmGame: React.FC<{ step: LessonStep, onComplete: () => void, membrane:
         const isCountingDown = countdown !== null;
 
         return (
-            <div className="text-center flex flex-col items-center gap-8 w-full">
-                <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
+            <div className="flex flex-col items-center gap-6 w-full max-w-[900px] mx-auto px-4 animate-fade-in text-center h-full">
+                <h2 className="text-3xl font-black text-slate-800 animate-slide-up mt-8">{step.title}</h2>
                 <div className="flex flex-col items-center animate-slide-up delay-100">
-                    <p className="text-xl text-slate-500 font-medium mb-1">{step.description}</p>
+                    <p className="text-lg text-slate-500 font-medium mb-4">{step.description}</p>
                     {!isCountingDown && (
-                        <div className="bg-slate-100 px-4 py-1 rounded-full border-2 border-slate-200">
+                        <div className="bg-slate-50 px-6 py-2 rounded-full border-4 border-slate-200">
                             <span className="font-black text-slate-600">현재 속도: <span className="text-blue-500">{targetBpm}</span> BPM</span>
                         </div>
                     )}
                 </div>
 
-                <div className="flex gap-4 h-24 items-center justify-center w-full animate-slide-up delay-200">
+                <div className="flex-1 flex gap-4 items-center justify-center w-full animate-slide-up delay-200">
                     {[...Array(step.target)].map((_, i) => {
                         const isTapped = i < taps;
                         const isMetronome = i === metronomeIndex;
 
-                        let circleClass = 'bg-slate-200';
+                        let circleClass = 'bg-slate-200 border-4 border-slate-300';
                         if (isTapped) {
-                            circleClass = isMetronome ? 'bg-[#58CC02] ring-4 ring-rose-400 scale-125 shadow-lg' : 'bg-[#58CC02] scale-110 shadow-lg';
+                            circleClass = isMetronome ? 'bg-[#58CC02] border-4 border-[#46A302] ring-4 ring-rose-400 scale-125 shadow-lg' : 'bg-[#58CC02] border-4 border-[#46A302] scale-110 shadow-lg';
                         } else if (isMetronome) {
-                            circleClass = 'bg-rose-400 scale-110 shadow-lg shadow-rose-400/50';
+                            circleClass = 'bg-rose-400 border-4 border-rose-500 scale-110 shadow-lg shadow-rose-400/50';
                         }
 
                         return (
@@ -2144,7 +2148,7 @@ const RhythmGame: React.FC<{ step: LessonStep, onComplete: () => void, membrane:
                     })}
                 </div>
 
-                <div className="animate-pop-in mt-4">
+                <div className="animate-pop-in mt-4 mb-8">
                     <button
                         disabled={isCountingDown}
                         onClick={async () => {
@@ -2171,10 +2175,10 @@ const RhythmGame: React.FC<{ step: LessonStep, onComplete: () => void, membrane:
                             }
                         }}
                         className={`
-                            w-48 h-48 rounded-full overflow-hidden relative transition-all flex items-center justify-center
+                            w-48 h-48 rounded-full overflow-hidden relative transition-all flex items-center justify-center border-x-4 border-t-4 border-b-[16px]
                             ${isCountingDown
-                                ? 'bg-slate-300 shadow-[0_12px_0_#94A3B8] cursor-not-allowed text-white'
-                                : 'bg-[#EA4335] shadow-[0_12px_0_#B71C1C] cursor-pointer hover:brightness-110 active:shadow-[0_2px_0_#B71C1C] active:translate-y-[10px]'}
+                                ? 'bg-slate-300 border-slate-400 cursor-not-allowed text-white'
+                                : 'bg-[#EA4335] border-[#B71C1C] cursor-pointer hover:bg-rose-500 active:border-b-4 active:translate-y-[12px]'}
                         `}
                     >
                         {/* Ripple effect on tap */}
@@ -2184,7 +2188,7 @@ const RhythmGame: React.FC<{ step: LessonStep, onComplete: () => void, membrane:
                                 ${activeIndex !== -1 ? 'scale-150 opacity-0' : 'opacity-100'}
                             `} />
                         )}
-                        <span className={`font-black relative z-10 ${isCountingDown ? 'text-6xl animate-pulse' : 'text-4xl text-white'}`}>
+                        <span className={`font-black relative z-10 ${isCountingDown ? 'text-6xl animate-pulse text-slate-500' : 'text-5xl text-white'}`}>
                             {isCountingDown ? countdown : '쿵!'}
                         </span>
                     </button>
@@ -2200,19 +2204,19 @@ const PitchGame: React.FC<{ step: LessonStep, onComplete: () => void, synth: any
 
     if (step.type === 'listen') {
         return (
-            <div className="flex flex-col gap-8 items-center text-center">
-                <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
-                <div className="flex gap-6 animate-slide-up delay-100">
-                    <button onClick={playHigh} className="p-6 bg-sky-100 rounded-3xl flex flex-col items-center gap-2 hover:bg-sky-200 hover:scale-105 transition-all">
-                        <span className="text-6xl animate-float">🐦</span>
-                        <span className="font-bold text-sky-700">높은 소리</span>
+            <div className="flex flex-col items-center gap-6 w-full max-w-[900px] mx-auto px-4 animate-fade-in text-center">
+                <h2 className="text-3xl font-black text-slate-800 animate-slide-up mt-8">{step.title}</h2>
+                <div className="flex gap-6 animate-slide-up delay-100 mt-8">
+                    <button onClick={playHigh} className="w-40 h-48 bg-sky-50 rounded-[2rem] border-b-[12px] border-x-4 border-t-4 border-sky-200 flex flex-col items-center justify-center gap-4 hover:bg-sky-100 active:translate-y-2 active:border-b-4 transition-all group">
+                        <span className="text-6xl group-hover:animate-bounce">🐦</span>
+                        <span className="font-black text-sky-700 text-lg">높은 소리</span>
                     </button>
-                    <button onClick={playLow} className="p-6 bg-indigo-100 rounded-3xl flex flex-col items-center gap-2 hover:bg-indigo-200 hover:scale-105 transition-all">
-                        <span className="text-6xl">🐘</span>
-                        <span className="font-bold text-indigo-700">낮은 소리</span>
+                    <button onClick={playLow} className="w-40 h-48 bg-indigo-50 rounded-[2rem] border-b-[12px] border-x-4 border-t-4 border-indigo-200 flex flex-col items-center justify-center gap-4 hover:bg-indigo-100 active:translate-y-2 active:border-b-4 transition-all group">
+                        <span className="text-6xl group-hover:animate-bounce">🐘</span>
+                        <span className="font-black text-indigo-700 text-lg">낮은 소리</span>
                     </button>
                 </div>
-                <button onClick={onComplete} className="px-12 py-4 bg-[#58CC02] text-white rounded-2xl font-black text-xl shadow-lg mt-4 hover:scale-105 active:scale-95 transition-transform animate-pop-in delay-200">
+                <button onClick={onComplete} className="px-10 py-4 bg-[#58CC02] text-white rounded-2xl font-black text-lg shadow-[0_6px_0_rgba(74,171,2,1)] mt-8 hover:brightness-110 active:translate-y-[6px] active:shadow-none transition-all animate-slide-up delay-200">
                     다음으로
                 </button>
             </div>
@@ -2220,24 +2224,28 @@ const PitchGame: React.FC<{ step: LessonStep, onComplete: () => void, synth: any
     }
 
     return (
-        <div className="flex flex-col gap-8 items-center text-center">
-            <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
-            <button onClick={async () => { await Tone.start(); step.target === 'high' ? playHigh() : playLow(); }} className="p-4 bg-slate-100 rounded-full hover:bg-slate-200 active:scale-95 transition-all">
+        <div className="flex flex-col items-center gap-6 w-full max-w-[900px] mx-auto px-4 animate-fade-in text-center">
+            <h2 className="text-3xl font-black text-slate-800 animate-slide-up mt-8">{step.title}</h2>
+            
+            <button 
+                onClick={async () => { await Tone.start(); step.target === 'high' ? playHigh() : playLow(); }} 
+                className="w-20 h-20 bg-slate-50 border-4 border-slate-200 rounded-[2rem] flex items-center justify-center shadow-md hover:bg-slate-100 active:scale-95 transition-all mt-4 animate-slide-up delay-100"
+            >
                 <Volume2 size={40} className="text-slate-600" />
             </button>
 
-            <div className="grid grid-cols-2 gap-6 w-full max-w-md animate-slide-up delay-100">
+            <div className="flex gap-6 w-full justify-center animate-slide-up delay-200 mt-8">
                 <button
                     onClick={() => { playHigh(); if (step.target === 'high') onComplete(); }}
-                    className="aspect-square bg-white border-4 border-sky-100 rounded-3xl hover:border-sky-300 active:scale-95 transition-all flex items-center justify-center text-6xl shadow-sm hover:shadow-md"
+                    className="w-40 h-40 bg-white border-b-[12px] border-x-4 border-t-4 border-sky-100 rounded-[2rem] hover:border-sky-300 active:translate-y-2 active:border-b-4 transition-all flex items-center justify-center text-7xl group"
                 >
-                    🐦
+                    <span className="group-active:scale-90 transition-transform">🐦</span>
                 </button>
                 <button
                     onClick={() => { playLow(); if (step.target === 'low') onComplete(); }}
-                    className="aspect-square bg-white border-4 border-indigo-100 rounded-3xl hover:border-indigo-300 active:scale-95 transition-all flex items-center justify-center text-6xl shadow-sm hover:shadow-md"
+                    className="w-40 h-40 bg-white border-b-[12px] border-x-4 border-t-4 border-indigo-100 rounded-[2rem] hover:border-indigo-300 active:translate-y-2 active:border-b-4 transition-all flex items-center justify-center text-7xl group"
                 >
-                    🐘
+                    <span className="group-active:scale-90 transition-transform">🐘</span>
                 </button>
             </div>
         </div>
@@ -2266,26 +2274,26 @@ const MelodyGame: React.FC<{ step: LessonStep, onComplete: () => void, synth: an
     };
 
     const notes = [
-        { note: 'C4', color: 'bg-[#EA4335]', label: '도' },
-        { note: 'D4', color: 'bg-[#FBBC04]', label: '레' },
-        { note: 'E4', color: 'bg-[#34A853]', label: '미' },
-        { note: 'F4', color: 'bg-[#4285F4]', label: '파' },
-        { note: 'G4', color: 'bg-[#AA00FF]', label: '솔' },
+        { note: 'C4', classes: 'bg-[#EA4335] border-[#B71C1C]', label: '도' },
+        { note: 'D4', classes: 'bg-[#FBBC04] border-[#F39C12]', label: '레' },
+        { note: 'E4', classes: 'bg-[#34A853] border-[#1E8449]', label: '미' },
+        { note: 'F4', classes: 'bg-[#4285F4] border-[#154360]', label: '파' },
+        { note: 'G4', classes: 'bg-[#AA00FF] border-[#4A235A]', label: '솔' },
     ];
 
     return (
-        <div className="flex flex-col items-center gap-8 w-full">
-            <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
-            <p className="text-slate-500 font-medium animate-slide-up delay-100">{step.description}</p>
+        <div className="flex flex-col items-center gap-6 w-full max-w-[900px] mx-auto px-4 animate-fade-in text-center">
+            <h2 className="text-3xl font-black text-slate-800 animate-slide-up mt-8">{step.title}</h2>
+            <p className="text-lg text-slate-500 font-medium animate-slide-up delay-100 mb-4">{step.description}</p>
 
             {/* Progress Visualization */}
-            <div className="flex gap-2 mb-4 animate-fade-in delay-200">
+            <div className="flex gap-3 mb-8 animate-slide-up delay-200 bg-slate-50 px-8 py-4 rounded-full border-4 border-slate-200">
                 {targetNotes.map((n: string, i: number) => (
-                    <div key={i} className={`w-4 h-4 rounded-full transition-colors duration-300 ${i < playedNotes.length ? 'bg-slate-800 scale-125' : 'bg-slate-200'}`} />
+                    <div key={i} className={`w-5 h-5 rounded-full transition-all duration-300 shadow-inner ${i < playedNotes.length ? 'bg-[#58CC02] scale-125' : 'bg-slate-200'}`} />
                 ))}
             </div>
 
-            <div className="flex gap-2 animate-slide-up delay-200">
+            <div className="flex gap-4 sm:gap-6 animate-slide-up delay-300 pb-8 mt-4">
                 {notes.map((key, i) => {
                     const isNext = targetNotes[playedNotes.length] === key.note;
                     return (
@@ -2293,12 +2301,12 @@ const MelodyGame: React.FC<{ step: LessonStep, onComplete: () => void, synth: an
                             key={i}
                             onClick={() => handleNoteClick(key.note)}
                             className={`
-                                w-14 h-40 md:w-20 md:h-56 rounded-b-xl flex items-end justify-center pb-4 text-white font-bold text-xl shadow-md transition-all active:scale-95 duration-200
-                                ${key.color}
-                                ${isNext ? 'ring-4 ring-black/20 translate-y-2 animate-pulse' : 'hover:-translate-y-1'}
+                                w-16 h-48 md:w-24 md:h-64 rounded-b-[2rem] rounded-t-2xl flex items-end justify-center pb-6 text-white font-black text-2xl border-b-[16px] border-x-4 border-t-4 transition-all duration-200 group
+                                ${key.classes}
+                                ${isNext ? 'ring-4 ring-rose-400/50 -translate-y-4 shadow-xl' : 'hover:-translate-y-2 active:translate-y-2 active:border-b-4'}
                             `}
                         >
-                            {key.label}
+                            <span className="group-active:scale-90 transition-transform">{key.label}</span>
                         </button>
                     )
                 })}
@@ -2313,9 +2321,9 @@ const HarmonyGame: React.FC<{ step: LessonStep, onComplete: () => void, synth: a
     const playMono = async () => { await Tone.start(); synth?.triggerAttackRelease(["C4"], "1n"); };
 
     const VOICES = [
-        { note: "C4", color: "bg-rose-400", label: "도", emoji: "🐸" },
-        { note: "E4", color: "bg-emerald-400", label: "미", emoji: "🦊" },
-        { note: "G4", color: "bg-sky-400", label: "솔", emoji: "🐳" },
+        { note: "C4", color: "bg-rose-400 text-rose-800 border-rose-500", label: "도", emoji: "🐸" },
+        { note: "E4", color: "bg-emerald-400 text-emerald-800 border-emerald-500", label: "미", emoji: "🦊" },
+        { note: "G4", color: "bg-sky-400 text-sky-800 border-sky-500", label: "솔", emoji: "🐳" },
     ];
 
     const toggleVoice = async (index: number) => {
@@ -2341,29 +2349,37 @@ const HarmonyGame: React.FC<{ step: LessonStep, onComplete: () => void, synth: a
 
     if (step.type === 'listen') {
         return (
-            <div className="text-center flex flex-col items-center gap-8">
-                <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
-                <p className="text-xl text-slate-500 animate-slide-up delay-100">{step.description}</p>
-                <button
-                    onClick={() => {
-                        playMono();
-                        setTimeout(onComplete, 2500);
-                    }}
-                    className="w-32 h-32 bg-[#4285F4] rounded-full text-white shadow-xl active:scale-95 flex items-center justify-center animate-pop-in delay-200 hover:scale-105 transition-transform"
-                >
-                    <span className="text-6xl">👤</span>
-                </button>
-                <p className="text-slate-400 font-bold">눌러서 들어보세요</p>
+            <div className="flex flex-col items-center gap-6 w-full max-w-[900px] mx-auto px-4 animate-fade-in text-center h-full">
+                <h2 className="text-3xl font-black text-slate-800 animate-slide-up mt-8">{step.title}</h2>
+                <p className="text-lg text-slate-500 font-medium animate-slide-up delay-100 mb-4">{step.description}</p>
+                <div className="flex-1 flex flex-col items-center justify-center">
+                    <button
+                        onClick={() => {
+                            playMono();
+                            setTimeout(onComplete, 2500);
+                        }}
+                        className="w-48 h-48 bg-[#4285F4] border-b-[12px] border-x-4 border-t-4 border-[#154360] rounded-full text-white shadow-xl active:translate-y-2 active:border-b-4 flex items-center justify-center animate-slide-up delay-200 mt-8 group transition-all"
+                    >
+                        <span className="text-7xl group-hover:scale-110 group-active:scale-95 transition-transform">👤</span>
+                    </button>
+                    <p className="text-slate-400 font-bold mt-8 animate-slide-up delay-300">눌러서 들어보세요</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="text-center flex flex-col items-center gap-8">
-            <h2 className="text-3xl font-black text-slate-800 animate-slide-up">{step.title}</h2>
-            <p className="text-xl text-slate-500 animate-slide-up delay-100">{step.description}</p>
+        <div className="flex flex-col items-center gap-6 w-full max-w-[900px] mx-auto px-4 animate-fade-in text-center">
+            <h2 className="text-3xl font-black text-slate-800 animate-slide-up mt-8">{step.title}</h2>
+            <p className="text-lg text-slate-500 font-medium animate-slide-up delay-100 mb-4">{step.description}</p>
 
-            <div className="flex justify-center gap-4 w-full max-w-md animate-slide-up delay-200">
+            <div className="h-10 flex gap-4 mb-4 mt-2 animate-slide-up delay-200 bg-slate-50 px-8 py-4 rounded-full border-4 border-slate-200 items-center">
+                {[0, 1, 2].map(i => (
+                    <div key={i} className={`w-5 h-5 rounded-full transition-all duration-300 shadow-inner ${activeVoices.length > i ? 'bg-[#58CC02] scale-125 ring-2 ring-[#46A302]' : 'bg-slate-200'}`} />
+                ))}
+            </div>
+
+            <div className="flex justify-center gap-6 w-full max-w-md animate-slide-up delay-300 h-full mt-4">
                 {VOICES.map((voice, idx) => {
                     const isActive = activeVoices.includes(idx);
                     return (
@@ -2371,22 +2387,17 @@ const HarmonyGame: React.FC<{ step: LessonStep, onComplete: () => void, synth: a
                             key={idx}
                             onClick={() => toggleVoice(idx)}
                             className={`
-                                w-24 h-40 rounded-full flex flex-col items-center justify-end pb-4 transition-all duration-300
-                                ${isActive ? `${voice.color} -translate-y-4 shadow-xl scale-110` : 'bg-slate-200 hover:bg-slate-300'}
+                                w-28 h-56 rounded-[3rem] flex flex-col items-center justify-end pb-8 border-b-[12px] border-x-4 border-t-4 transition-all duration-300 group
+                                ${isActive ? `${voice.color} -translate-y-4 shadow-xl` : 'bg-white border-slate-200 hover:bg-slate-50 active:translate-y-2 active:border-b-4 text-slate-300 shadow-md'}
                             `}
                         >
-                            <span className={`text-5xl mb-2 transition-transform duration-300 ${isActive ? 'scale-125 animate-bounce' : 'grayscale opacity-50'}`}>
+                            <span className={`text-6xl mb-6 transition-transform duration-300 ${isActive ? 'scale-125 animate-bounce' : 'grayscale opacity-60 group-hover:scale-110 group-active:scale-90'}`}>
                                 {voice.emoji}
                             </span>
-                            <span className={`font-bold ${isActive ? 'text-white' : 'text-slate-500'}`}>{voice.label}</span>
+                            <span className={`font-black text-xl ${isActive ? 'text-white' : 'text-slate-500'}`}>{voice.label}</span>
                         </button>
                     );
                 })}
-            </div>
-            <div className="h-8 flex gap-2">
-                {[0, 1, 2].map(i => (
-                    <div key={i} className={`w-3 h-3 rounded-full transition-colors ${activeVoices.length > i ? 'bg-[#58CC02]' : 'bg-slate-200'}`} />
-                ))}
             </div>
         </div>
     );
@@ -4001,7 +4012,7 @@ const MelodyDirectionGame: React.FC<{ step: LessonStep, onComplete: () => void, 
 
     // Pitch to visual Y position (higher note = higher position)
     const noteToY = (note: string): number => {
-        const noteMap: Record<string, number> = { 'C4': 80, 'D4': 65, 'E4': 50, 'F4': 40, 'G4': 30, 'A4': 15, 'B4': 5 };
+        const noteMap: Record<string, number> = { 'C4': 85, 'D4': 70, 'E4': 55, 'F4': 40, 'G4': 25, 'A4': 15, 'B4': 10 };
         return noteMap[note] || 50;
     };
 
@@ -4014,8 +4025,8 @@ const MelodyDirectionGame: React.FC<{ step: LessonStep, onComplete: () => void, 
 
                 {/* Single dot visual */}
                 <div className="w-full max-w-xs h-48 relative bg-slate-50 rounded-3xl border-2 border-slate-200 overflow-hidden animate-slide-up delay-200">
-                    <div className={`absolute left-1/2 -translate-x-1/2 w-16 h-16 rounded-full transition-all duration-500 flex items-center justify-center ${isPlaying ? 'bg-orange-400 shadow-lg shadow-orange-300/50 scale-125' : 'bg-orange-100 border-2 border-orange-200'
-                        }`} style={{ top: '40%' }}>
+                    <div className={`absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full transition-all duration-500 flex items-center justify-center ${isPlaying ? 'bg-orange-400 shadow-lg shadow-orange-300/50 scale-125' : 'bg-orange-100 border-2 border-orange-200'
+                        }`} style={{ top: '50%' }}>
                         <Volume2 size={24} className={isPlaying ? 'text-white' : 'text-orange-300'} />
                     </div>
                 </div>
@@ -4054,7 +4065,7 @@ const MelodyDirectionGame: React.FC<{ step: LessonStep, onComplete: () => void, 
                 {/* Two dots with arrow showing upward movement */}
                 <div className="w-full max-w-xs h-56 relative bg-slate-50 rounded-3xl border-2 border-slate-200 overflow-hidden animate-slide-up delay-200">
                     {/* Low note dot */}
-                    <div className={`absolute left-[30%] -translate-x-1/2 w-14 h-14 rounded-full transition-all duration-500 flex items-center justify-center ${activeNote === 0 ? 'bg-orange-400 shadow-lg shadow-orange-300/50 scale-125' : 'bg-orange-100 border-2 border-orange-200'
+                    <div className={`absolute left-[30%] -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full transition-all duration-500 flex items-center justify-center ${activeNote === 0 ? 'bg-orange-400 shadow-lg shadow-orange-300/50 scale-125' : 'bg-orange-100 border-2 border-orange-200'
                         }`} style={{ top: `${noteToY(ascNotes[0])}%` }}>
                         <span className={`font-black text-sm ${activeNote === 0 ? 'text-white' : 'text-orange-300'}`}>Low</span>
                     </div>
@@ -4065,7 +4076,7 @@ const MelodyDirectionGame: React.FC<{ step: LessonStep, onComplete: () => void, 
                     </div>
 
                     {/* High note dot */}
-                    <div className={`absolute left-[70%] -translate-x-1/2 w-14 h-14 rounded-full transition-all duration-500 flex items-center justify-center ${activeNote === 1 ? 'bg-emerald-400 shadow-lg shadow-emerald-300/50 scale-125' : 'bg-emerald-100 border-2 border-emerald-200'
+                    <div className={`absolute left-[70%] -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full transition-all duration-500 flex items-center justify-center ${activeNote === 1 ? 'bg-emerald-400 shadow-lg shadow-emerald-300/50 scale-125' : 'bg-emerald-100 border-2 border-emerald-200'
                         }`} style={{ top: `${noteToY(ascNotes[1])}%` }}>
                         <span className={`font-black text-sm ${activeNote === 1 ? 'text-white' : 'text-emerald-300'}`}>High</span>
                     </div>
@@ -4099,7 +4110,7 @@ const MelodyDirectionGame: React.FC<{ step: LessonStep, onComplete: () => void, 
                 {/* Two dots with arrow showing downward movement */}
                 <div className="w-full max-w-xs h-56 relative bg-slate-50 rounded-3xl border-2 border-slate-200 overflow-hidden animate-slide-up delay-200">
                     {/* High note dot (start) */}
-                    <div className={`absolute left-[30%] -translate-x-1/2 w-14 h-14 rounded-full transition-all duration-500 flex items-center justify-center ${activeNote === 0 ? 'bg-emerald-400 shadow-lg shadow-emerald-300/50 scale-125' : 'bg-emerald-100 border-2 border-emerald-200'
+                    <div className={`absolute left-[30%] -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full transition-all duration-500 flex items-center justify-center ${activeNote === 0 ? 'bg-emerald-400 shadow-lg shadow-emerald-300/50 scale-125' : 'bg-emerald-100 border-2 border-emerald-200'
                         }`} style={{ top: `${noteToY(descNotes[0])}%` }}>
                         <span className={`font-black text-sm ${activeNote === 0 ? 'text-white' : 'text-emerald-300'}`}>High</span>
                     </div>
@@ -4110,7 +4121,7 @@ const MelodyDirectionGame: React.FC<{ step: LessonStep, onComplete: () => void, 
                     </div>
 
                     {/* Low note dot (end) */}
-                    <div className={`absolute left-[70%] -translate-x-1/2 w-14 h-14 rounded-full transition-all duration-500 flex items-center justify-center ${activeNote === 1 ? 'bg-orange-400 shadow-lg shadow-orange-300/50 scale-125' : 'bg-orange-100 border-2 border-orange-200'
+                    <div className={`absolute left-[70%] -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full transition-all duration-500 flex items-center justify-center ${activeNote === 1 ? 'bg-orange-400 shadow-lg shadow-orange-300/50 scale-125' : 'bg-orange-100 border-2 border-orange-200'
                         }`} style={{ top: `${noteToY(descNotes[1])}%` }}>
                         <span className={`font-black text-sm ${activeNote === 1 ? 'text-white' : 'text-orange-300'}`}>Low</span>
                     </div>
