@@ -44,7 +44,50 @@ export const UNITS: Record<number, Unit[]> = {
             icon: '👑',
         }
     ],
-    2: [],
+    2: [
+        {
+            id: 'pitch-intro',
+            title: '음높이의 기초',
+            description: '소리는 위아래로 움직여요',
+            color: '#4285F4',
+            icon: '🕊️',
+        },
+        {
+            id: 'pitch-match',
+            title: '같은 음 찾기',
+            description: '귀를 기울여 똑같은 높이를 찾아요',
+            color: '#34A853',
+            icon: '🎯',
+        },
+        {
+            id: 'pitch-quiz',
+            title: '음 높이 퀴즈',
+            description: '어떤 소리가 더 높을까요?',
+            color: '#F4B400',
+            icon: '❓',
+        },
+        {
+            id: 'pitch-vocal',
+            title: '목소리로 맞춰보기',
+            description: '마이크로 직접 소리를 내보세요',
+            color: '#EA4335',
+            icon: '🎙️',
+        },
+        {
+            id: 'pitch-memory',
+            title: '음 기억하기',
+            description: '소리를 듣고 잠시 뒤에 불러보세요',
+            color: '#A142F4',
+            icon: '🧠',
+        },
+        {
+            id: 'pitch-patterns',
+            title: '음 패턴 따라하기',
+            description: '짧은 멜로디의 움직임을 따라가요',
+            color: '#FF7043',
+            icon: '〰️',
+        }
+    ],
     3: [
         {
             id: 'harmony-intro',

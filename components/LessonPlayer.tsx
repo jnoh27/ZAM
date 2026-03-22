@@ -9,7 +9,7 @@ interface LessonPlayerProps {
 }
 
 type LessonStep = {
-    type: 'listen' | 'tap' | 'choose' | 'play';
+    type: 'listen' | 'tap' | 'choose' | 'play' | 'sing';
     title: string;
     description?: string;
     target?: any;
@@ -20,6 +20,33 @@ type LessonStep = {
 
 // --- LESSON DATA ---
 const LESSONS: Record<string, LessonStep[]> = {
+    'pitch-patterns': [
+        { type: 'sing', title: '낮음 → 높음', description: '두 음의 움직임을 따라 불러보세요.', target: [196.00, 261.63] },
+        { type: 'sing', title: '높음 → 낮음', description: '반대로 내려오는 움직임이에요.', target: [261.63, 196.00] }
+    ],
+    'pitch-memory': [
+        { type: 'sing', title: '음 기억하기', description: '소리를 잘 듣고, 사라진 뒤에 똑같이 불러보세요.', target: 196.00 },
+        { type: 'sing', title: '조금 더 높은 음', description: '이번에도 소리를 잘 기억해야 해요.', target: 261.63 }
+    ],
+    'pitch-vocal': [
+        { type: 'sing', title: '낮은 음 따라 부르기', description: '베이스의 낮은 소리를 따라 해보세요. (아— 하고 소리내면 분석이 쉬워져요)', target: 130.81 }, // C3
+        { type: 'sing', title: '중간 음 높이', description: '편안한 목소리로 따라 불러보세요.', target: 196.00 }, // G3
+        { type: 'sing', title: '높은 소리 도전!', description: '조금 더 높은 소리까지 정확하게 맞춰볼까요?', target: 261.63 }  // C4
+    ],
+    'pitch-quiz': [
+        { type: 'choose', title: '두 번째 소리가 어땠나요?', description: '첫 번째 소리를 듣고, 두 번째 소리가 더 높은지 낮은지 맞춰보세요.', target: 'higher', options: [220, 440] },
+        { type: 'choose', title: '다시 한번 도전!', description: '이번에는 음높이의 차이가 조금 더 작아졌어요.', target: 'lower', options: [440, 330] },
+        { type: 'choose', title: '마지막 단계', description: '집중해서 들어보세요. 어느 쪽일까요?', target: 'higher', options: [440, 466.16] }
+    ],
+    'pitch-match': [
+        { type: 'play', title: '같은 음 찾기 (기초)', description: '왼쪽 스피커 버튼을 눌러 소리를 듣고, 똑같은 높이를 찾아보세요.', target: 220 },
+        { type: 'play', title: '조금 더 높은 음', description: '이번엔 좀 더 높은 소리에 도전해볼까요?', target: 440 },
+        { type: 'play', title: '음높이 마스터!', description: '가장 높은 소리까지 정확하게 맞춰보세요.', target: 660 }
+    ],
+    'pitch-intro': [
+        { type: 'listen', title: '음높이란 무엇일까?', description: '소리의 높고 낮음은 위아래 움직임과 같아요.', demoType: 'pitch-intro' },
+        { type: 'play', title: '소리의 높낮이 탐험', description: '슬라이더를 위아래로 움직여서 소리의 움직임을 느껴보세요.' }
+    ],
     'rhythm-intro': [
         { type: 'listen', title: '박자란 무엇일까?', description: '음악이 앞으로 나아가게 하는 일정한 맥박이에요', demoType: 'concept' },
         { type: 'listen', title: '박자를 느껴봐요', description: '깜빡이는 빛과 소리에 맞춰 고개를 끄덕여보세요', demoType: 'pulse', bpm: 120 },
@@ -173,6 +200,18 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({ lessonId, onComplete
         if (!currentStep) return <div>Lesson Completed!</div>;
 
         switch (lessonId) {
+            case 'pitch-patterns':
+                return <PitchPatternGame step={currentStep} onComplete={handleStepComplete} />;
+            case 'pitch-memory':
+                return <PitchMemoryGame step={currentStep} onComplete={handleStepComplete} />;
+            case 'pitch-vocal':
+                return <PitchMatchingGame step={currentStep} onComplete={handleStepComplete} />;
+            case 'pitch-quiz':
+                return <PitchQuizGame step={currentStep} onComplete={handleStepComplete} />;
+            case 'pitch-match':
+                return <PitchComparisonGame step={currentStep} onComplete={handleStepComplete} />;
+            case 'pitch-intro':
+                return <PitchIntroGame step={currentStep} onComplete={handleStepComplete} />;
             case 'rhythm-intro':
                 return <RhythmGame step={currentStep} onComplete={handleStepComplete} membrane={membraneRef.current} />;
             case 'rhythm-master':
@@ -846,6 +885,1075 @@ const RhythmMasterGame: React.FC<{ step: LessonStep, onComplete: () => void }> =
             </div>
 
             <p className="mt-8 text-slate-500 font-bold text-center">빈칸을 클릭해서 소리를 넣거나 빼보세요!</p>
+        </div>
+    );
+};
+
+// --- SHARED UTILS ---
+const autoCorrelate = (buf: Float32Array, sampleRate: number) => {
+    let SIZE = buf.length;
+    let rms = 0;
+    for (let i = 0; i < SIZE; i++) {
+        let val = buf[i];
+        rms += val * val;
+    }
+    rms = Math.sqrt(rms / SIZE);
+    
+    // Balanced noise gate
+    if (rms < 0.02) return -1;
+
+    let r1 = 0, r2 = SIZE - 1, thres = 0.2;
+    for (let i = 0; i < SIZE / 2; i++) if (Math.abs(buf[i]) < thres) { r1 = i; break; }
+    for (let i = 1; i < SIZE / 2; i++) if (Math.abs(buf[SIZE - i]) < thres) { r2 = SIZE - i; break; }
+
+    buf = buf.slice(r1, r2);
+    SIZE = buf.length;
+
+    let c = new Array(SIZE).fill(0);
+    for (let i = 0; i < SIZE; i++)
+        for (let j = 0; j < SIZE - i; j++)
+            c[i] = c[i] + buf[j] * buf[j + i];
+
+    let d = 0; while (c[d] > c[d + 1]) d++;
+    let maxval = -1, maxpos = -1;
+    for (let i = d; i < SIZE; i++) {
+        if (c[i] > maxval) {
+            maxval = c[i];
+            maxpos = i;
+        }
+    }
+    
+    // Confidence check: max correlation should be at least 80% (more lenient than 90%)
+    if (maxval < c[0] * 0.8) return -1;
+    
+    let T0 = maxpos;
+    return sampleRate / T0;
+};
+
+const PitchPatternGame: React.FC<{ step: LessonStep, onComplete: () => void }> = ({ step, onComplete }) => {
+    const [patternIdx, setPatternIdx] = useState(0);
+    const [gameState, setGameState] = useState<'PLAYBACK' | 'SING'>('PLAYBACK');
+    const [userFreq, setUserFreq] = useState<number | null>(null);
+    const [isMatched, setIsMatched] = useState(false);
+    const [isMicOn, setIsMicOn] = useState(false);
+
+    const micRef = useRef<Tone.UserMedia | null>(null);
+    const analyserRef = useRef<Tone.Analyser | null>(null);
+    const synthRef = useRef<Tone.Synth | null>(null);
+    const requestRef = useRef<number>(0);
+
+    const pattern = Array.isArray(step.target) ? step.target : [440, 880];
+    const minFreq = 82.41;
+    const maxFreq = 880;
+
+    const getPos = (f: number) => {
+        const logMin = Math.log2(minFreq);
+        const logMax = Math.log2(maxFreq);
+        const logVal = f > 0 ? Math.log2(f) : logMin;
+        return Math.max(0, Math.min(100, ((logVal - logMin) / (logMax - logMin)) * 100));
+    };
+
+    useEffect(() => {
+        micRef.current = new Tone.UserMedia();
+        analyserRef.current = new Tone.Analyser("waveform", 2048);
+        synthRef.current = new Tone.Synth().toDestination();
+
+        playPattern();
+
+        return () => {
+            micRef.current?.dispose();
+            analyserRef.current?.dispose();
+            synthRef.current?.dispose();
+            cancelAnimationFrame(requestRef.current);
+        };
+    }, [step]);
+
+    const playPattern = async () => {
+        setGameState('PLAYBACK');
+        setPatternIdx(0);
+        await Tone.start();
+
+        let time = Tone.now();
+        pattern.forEach((freq, i) => {
+            synthRef.current?.triggerAttackRelease(freq, "4n", time + i * 0.8);
+        });
+
+        setTimeout(() => {
+            setGameState('SING');
+            startMic();
+        }, pattern.length * 800 + 500);
+    };
+
+    const startMic = async () => {
+        try {
+            await micRef.current?.open();
+            micRef.current?.connect(analyserRef.current!);
+            setIsMicOn(true);
+            updatePitch();
+        } catch (e) { console.error(e); }
+    };
+
+    const hasCompletedRef = useRef(false);
+
+    const updatePitch = () => {
+        if (!analyserRef.current || hasCompletedRef.current) return;
+        const buffer = analyserRef.current.getValue() as Float32Array;
+        const pitch = autoCorrelate(buffer, Tone.getContext().sampleRate);
+
+        if (pitch !== -1 && pitch > minFreq && pitch < maxFreq) {
+            setUserFreq(pitch);
+            const targetFreq = pattern[patternIdx];
+            const diff = Math.abs(Math.log2(pitch / targetFreq));
+            
+            if (diff < 0.05) {
+                if (!isMatched) {
+                    setIsMatched(true);
+                    setTimeout(() => {
+                        if (hasCompletedRef.current) return;
+                        setIsMatched(false);
+                        if (patternIdx < pattern.length - 1) {
+                            setPatternIdx(prev => prev + 1);
+                        } else {
+                            hasCompletedRef.current = true;
+                            onComplete();
+                        }
+                    }, 1000);
+                }
+            }
+        }
+        requestRef.current = requestAnimationFrame(updatePitch);
+    };
+
+    return (
+        <div className="flex flex-col items-center justify-between w-full max-w-[1000px] h-[75vh] mx-auto animate-fade-in px-8">
+            <div className="text-center mb-12">
+                <h2 className="text-4xl font-black text-slate-800 mb-2">{step.title}</h2>
+                <p className="text-xl font-bold text-slate-500">{step.description}</p>
+            </div>
+
+            <div className="flex-1 w-full flex items-end justify-center gap-16 lg:gap-32 pb-12">
+                <div className="flex flex-col items-center gap-6 h-full justify-end">
+                    <div className="flex-1 w-32 bg-slate-50 rounded-[48px] relative border-4 border-white shadow-inner overflow-hidden">
+                        <div 
+                            className={`absolute bottom-0 left-0 right-0 transition-all duration-200 ease-out border-t-8 border-white
+                                ${isMatched ? 'bg-[#58CC02]' : 'bg-rose-400 opacity-60'}`}
+                            style={{ height: `${userFreq ? getPos(userFreq) : 0}%` }}
+                        />
+                    </div>
+                    <span className="font-black text-slate-400 uppercase tracking-widest text-sm">나의 목소리</span>
+                </div>
+
+                <div className="w-64 h-full flex flex-col items-center justify-center gap-8 pb-32">
+                    <div className="flex gap-4">
+                        {pattern.map((_, i) => (
+                            <div key={i} className={`w-4 h-4 rounded-full ${i < patternIdx ? 'bg-[#58CC02]' : i === patternIdx ? 'bg-blue-500 animate-pulse' : 'bg-slate-200'}`} />
+                        ))}
+                    </div>
+                    <span className="text-2xl font-black text-slate-600">
+                        {gameState === 'PLAYBACK' ? '패턴을 들어보세요' : `${patternIdx + 1}번째 소리를 따라해보세요!`}
+                    </span>
+                    {gameState === 'SING' && (
+                        <div className={`w-20 h-20 rounded-full flex items-center justify-center text-white ${isMatched ? 'bg-[#58CC02]' : 'bg-slate-300'}`}>
+                            {isMatched ? <Check size={40} strokeWidth={4} /> : <Music size={40} />}
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex flex-col items-center gap-6 h-full justify-end">
+                    <div className="flex-1 w-32 bg-slate-50 rounded-[48px] relative border-4 border-white shadow-inner overflow-hidden">
+                        <div 
+                            className="absolute bottom-0 left-0 right-0 bg-blue-500 opacity-80 transition-all duration-500 border-t-8 border-white"
+                            style={{ height: `${getPos(pattern[patternIdx])}%` }}
+                        />
+                    </div>
+                    <span className="font-black text-blue-400 uppercase tracking-widest text-sm">목표 패턴 ({patternIdx + 1}/{pattern.length})</span>
+                </div>
+            </div>
+
+            <button onClick={playPattern} disabled={gameState === 'PLAYBACK'} className="px-8 py-3 bg-white text-slate-600 border-2 border-slate-100 rounded-2xl font-bold shadow-sm hover:bg-slate-50 transition-all disabled:opacity-30">
+                다시 듣기
+            </button>
+        </div>
+    );
+};
+
+const PitchMemoryGame: React.FC<{ step: LessonStep, onComplete: () => void }> = ({ step, onComplete }) => {
+    const [gameState, setGameState] = useState<'LISTEN' | 'WAIT' | 'ACT'>('LISTEN');
+    const [countdown, setCountdown] = useState(3);
+    const [userFreq, setUserFreq] = useState<number | null>(null);
+    const [isMatched, setIsMatched] = useState(false);
+    const [isMicOn, setIsMicOn] = useState(false);
+
+    const micRef = useRef<Tone.UserMedia | null>(null);
+    const analyserRef = useRef<Tone.Analyser | null>(null);
+    const refOscRef = useRef<Tone.Oscillator | null>(null);
+    const requestRef = useRef<number>(0);
+
+    const targetFreq = step.target || 220;
+    const minFreq = 82.41;
+    const maxFreq = 880;
+
+    const getPos = (f: number) => {
+        const logMin = Math.log2(minFreq);
+        const logMax = Math.log2(maxFreq);
+        const logVal = f > 0 ? Math.log2(f) : logMin;
+        return Math.max(0, Math.min(100, ((logVal - logMin) / (logMax - logMin)) * 100));
+    };
+
+    useEffect(() => {
+        micRef.current = new Tone.UserMedia();
+        analyserRef.current = new Tone.Analyser("waveform", 2048);
+        refOscRef.current = new Tone.Oscillator(targetFreq, "sine").toDestination();
+
+        startSequence();
+
+        return () => {
+            micRef.current?.dispose();
+            analyserRef.current?.dispose();
+            refOscRef.current?.dispose();
+            cancelAnimationFrame(requestRef.current);
+        };
+    }, [step]);
+
+    const hasCompletedRef = useRef(false);
+
+    const startSequence = async () => {
+        if (hasCompletedRef.current) return;
+        setGameState('LISTEN');
+        setCountdown(3);
+        setIsMatched(false);
+        setUserFreq(null);
+
+        await Tone.start();
+        refOscRef.current?.start().stop("+2");
+
+        setTimeout(() => {
+            if (hasCompletedRef.current) return;
+            setGameState('WAIT');
+            const timer = setInterval(() => {
+                setCountdown(prev => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+
+            setTimeout(() => {
+                if (hasCompletedRef.current) return;
+                setGameState('ACT');
+                startMic();
+            }, 3000);
+        }, 2500);
+    };
+
+    const startMic = async () => {
+        try {
+            await micRef.current?.open();
+            micRef.current?.connect(analyserRef.current!);
+            setIsMicOn(true);
+            updatePitch();
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const updatePitch = () => {
+        if (!analyserRef.current || hasCompletedRef.current) return;
+        const buffer = analyserRef.current.getValue() as Float32Array;
+        const pitch = autoCorrelate(buffer, Tone.getContext().sampleRate);
+
+        if (pitch !== -1 && pitch > minFreq && pitch < maxFreq) {
+            setUserFreq(pitch);
+            const diff = Math.abs(Math.log2(pitch / targetFreq));
+            if (diff < 0.05) {
+                setIsMatched(true);
+                hasCompletedRef.current = true;
+                setTimeout(onComplete, 1500);
+            }
+        }
+        requestRef.current = requestAnimationFrame(updatePitch);
+    };
+
+    return (
+        <div className="flex flex-col items-center justify-between w-full max-w-[1000px] h-[75vh] mx-auto animate-fade-in px-8">
+            <div className="text-center mb-12">
+                <h2 className="text-4xl font-black text-slate-800 mb-2">{step.title}</h2>
+                <p className="text-xl font-bold text-slate-500">{step.description}</p>
+            </div>
+
+            <div className="flex-1 w-full flex items-end justify-center gap-16 lg:gap-32 pb-12">
+                <div className="flex flex-col items-center gap-6 h-full justify-end">
+                    <div className="flex-1 w-32 bg-slate-50 rounded-[48px] relative border-4 border-white shadow-inner overflow-hidden">
+                        <div 
+                            className={`absolute bottom-0 left-0 right-0 transition-all duration-200 ease-out border-t-8 border-white
+                                ${isMatched ? 'bg-[#58CC02]' : 'bg-rose-400 opacity-60'}`}
+                            style={{ height: `${userFreq ? getPos(userFreq) : 0}%` }}
+                        />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                            <Music size={48} className="text-slate-100" strokeWidth={3} />
+                        </div>
+                    </div>
+                    <span className="font-black text-slate-400 uppercase tracking-widest text-sm">나의 목소리</span>
+                </div>
+
+                <div className="w-64 h-full flex flex-col items-center justify-center gap-8 pb-32">
+                    {gameState === 'LISTEN' && (
+                        <div className="flex flex-col items-center gap-4 animate-pulse">
+                            <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center text-white">
+                                <Volume2 size={48} strokeWidth={3} />
+                            </div>
+                            <span className="text-2xl font-black text-blue-500">잘 들어보세요!</span>
+                        </div>
+                    )}
+                    {gameState === 'WAIT' && (
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="text-8xl font-black text-slate-300 animate-scale-in">{countdown}</div>
+                            <span className="text-2xl font-black text-slate-400">잠시만 기다려요...</span>
+                        </div>
+                    )}
+                    {gameState === 'ACT' && (
+                        <div className="flex flex-col items-center gap-4">
+                            <div className={`w-24 h-24 rounded-full flex items-center justify-center text-white animate-bounce shadow-xl ${isMatched ? 'bg-[#58CC02]' : 'bg-rose-500'}`}>
+                                <Star size={48} fill="currentColor" strokeWidth={0} />
+                            </div>
+                            <span className={`text-2xl font-black ${isMatched ? 'text-[#58CC02]' : 'text-rose-500'}`}>
+                                {isMatched ? '대단해요!' : '기억한 음을 불러보세요!'}
+                            </span>
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex flex-col items-center gap-6 h-full justify-end">
+                    <div className="flex-1 w-32 bg-slate-50 rounded-[48px] relative border-4 border-white shadow-inner overflow-hidden">
+                        <div 
+                            className="absolute bottom-0 left-0 right-0 bg-blue-500 transition-all duration-1000 border-t-8 border-white"
+                            style={{ height: gameState === 'LISTEN' ? `${getPos(targetFreq)}%` : '0%' }}
+                        />
+                    </div>
+                    <span className="font-black text-slate-200 uppercase tracking-widest text-sm">목표 음높이</span>
+                </div>
+            </div>
+
+            <div className="h-20" />
+        </div>
+    );
+};
+
+const PitchMatchingGame: React.FC<{ step: LessonStep, onComplete: () => void }> = ({ step, onComplete }) => {
+    const [userFreq, setUserFreq] = useState<number | null>(null);
+    const [isMatched, setIsMatched] = useState(false);
+    const [guidance, setGuidance] = useState("마이크를 켜고 노래를 불러보세요!");
+    const [isMicOn, setIsMicOn] = useState(false);
+    const [isPlayingRef, setIsPlayingRef] = useState(false);
+
+    const micRef = useRef<Tone.UserMedia | null>(null);
+    const analyserRef = useRef<Tone.Analyser | null>(null);
+    const refOscRef = useRef<Tone.Oscillator | null>(null);
+    const matchTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const requestRef = useRef<number>(0);
+
+    const targetFreq = step.target || 220;
+    const minFreq = 82.41;
+    const maxFreq = 880;
+
+    const getPos = (f: number) => {
+        const logMin = Math.log2(minFreq);
+        const logMax = Math.log2(maxFreq);
+        const logVal = f > 0 ? Math.log2(f) : logMin;
+        return Math.max(0, Math.min(100, ((logVal - logMin) / (logMax - logMin)) * 100));
+    };
+
+    const targetPos = getPos(targetFreq);
+
+    useEffect(() => {
+        micRef.current = new Tone.UserMedia();
+        analyserRef.current = new Tone.Analyser("waveform", 2048);
+        refOscRef.current = new Tone.Oscillator(targetFreq, "sine").toDestination();
+
+        return () => {
+            micRef.current?.dispose();
+            analyserRef.current?.dispose();
+            refOscRef.current?.dispose();
+            cancelAnimationFrame(requestRef.current);
+            if (matchTimerRef.current) clearTimeout(matchTimerRef.current);
+        };
+    }, [step]);
+
+    const hasCompletedRef = useRef(false);
+
+    const startMic = async () => {
+        try {
+            await Tone.start();
+            await micRef.current?.open();
+            micRef.current?.connect(analyserRef.current!);
+            
+            // Stop reference sound when mic starts, as requested
+            if (isPlayingRef) {
+                refOscRef.current?.stop();
+                setIsPlayingRef(false);
+            }
+            
+            setIsMicOn(true);
+            updatePitch();
+        } catch (e) {
+            console.error("Mic access denied", e);
+            setGuidance("마이크 접근 권한이 필요해요.");
+        }
+    };
+
+    const playRef = () => {
+        if (!refOscRef.current || hasCompletedRef.current) return;
+        if (isPlayingRef) {
+            refOscRef.current.stop();
+            setIsPlayingRef(false);
+        } else {
+            Tone.start();
+            refOscRef.current.start();
+            setIsPlayingRef(true);
+        }
+    };
+
+    const updatePitch = () => {
+        if (!analyserRef.current || hasCompletedRef.current) return;
+        const buffer = analyserRef.current.getValue() as Float32Array;
+        const pitch = autoCorrelate(buffer, Tone.getContext().sampleRate);
+
+        if (pitch !== -1 && pitch > minFreq && pitch < maxFreq) {
+            setUserFreq(pitch);
+            const diff = Math.abs(Math.log2(pitch / targetFreq));
+            if (diff < 0.03) {
+                setGuidance("완벽해요! 그대로 유지하세요.");
+                if (!isMatched) {
+                    setIsMatched(true);
+                    hasCompletedRef.current = true;
+                    // Ensure sound is off upon completion
+                    if (isPlayingRef) {
+                        refOscRef.current?.stop();
+                        setIsPlayingRef(false);
+                    }
+                    setTimeout(onComplete, 2000);
+                }
+            } else {
+                setIsMatched(false);
+                setGuidance(pitch < targetFreq ? "조금 더 높게 불러보세요! ⬆️" : "조금 더 낮게 불러보세요! ⬇️");
+            }
+        }
+        requestRef.current = requestAnimationFrame(updatePitch);
+    };
+
+    return (
+        <div className="flex flex-col items-center justify-between w-full max-w-[1000px] h-[75vh] mx-auto animate-fade-in px-8">
+            <div className="text-center mb-8">
+                <h2 className="text-4xl font-black text-slate-800 mb-2">{step.title}</h2>
+                <p className="text-xl font-bold text-slate-500">{step.description}</p>
+            </div>
+
+            <div className="flex-1 w-full flex items-end justify-center gap-16 lg:gap-32 pb-12">
+                {/* User Voice Bar */}
+                <div className="flex flex-col items-center gap-6 h-full justify-end">
+                    <div className="flex-1 w-32 bg-slate-50 rounded-[48px] relative border-4 border-white shadow-inner overflow-hidden">
+                        <div 
+                            className={`absolute bottom-0 left-0 right-0 transition-all duration-200 ease-out border-t-8 border-white
+                                ${isMatched ? 'bg-[#58CC02]' : 'bg-rose-400 opacity-60'}`}
+                            style={{ height: `${userFreq ? getPos(userFreq) : 0}%` }}
+                        >
+                            {/* Organic bubbles/waves */}
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-10 bg-inherit rounded-[100%] blur-sm opacity-50" />
+                        </div>
+                        {/* Mic Icon */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                            <Music size={48} className="text-slate-100" strokeWidth={3} />
+                        </div>
+                    </div>
+                    <span className="font-black text-slate-400 uppercase tracking-widest text-sm">나의 목소리</span>
+                </div>
+
+                {/* Target Objective Bar */}
+                <div className="flex flex-col items-center gap-6 h-full justify-end">
+                    <div 
+                        className="flex-1 w-32 bg-slate-50 rounded-[48px] relative border-4 border-white shadow-inner overflow-hidden cursor-pointer group"
+                        onClick={playRef}
+                    >
+                        <div 
+                            className="absolute bottom-0 left-0 right-0 bg-blue-500 opacity-80 transition-all duration-500 border-t-8 border-white"
+                            style={{ height: `${targetPos}%` }}
+                        />
+                        {/* Play Icon overlay */}
+                        <div className="absolute inset-0 flex items-center justify-center bg-blue-500/0 group-hover:bg-blue-500/10 transition-colors">
+                            <Volume2 size={48} className={`text-white transition-all ${isPlayingRef ? 'scale-125 opacity-100' : 'opacity-20 stroke-[3px]'}`} />
+                        </div>
+                    </div>
+                    <span className="font-black text-blue-400 uppercase tracking-widest text-sm">목표 음높이</span>
+                </div>
+            </div>
+
+            {/* Real-time Guidance */}
+            <div className="h-32 w-full flex flex-col items-center justify-center gap-4">
+                <div className={`
+                    px-10 py-5 rounded-[28px] shadow-xl text-3xl font-black text-center transition-all duration-300
+                    ${isMatched ? 'bg-[#58CC02] text-white scale-110 shadow-green-100' : 'bg-white text-slate-700 border-2 border-slate-100'}
+                `}>
+                    {guidance}
+                </div>
+                
+                {!isMicOn && (
+                    <button 
+                        onClick={startMic}
+                        className="bg-slate-800 text-white px-8 py-3 rounded-2xl font-black hover:bg-slate-700 transition-colors flex items-center gap-2"
+                    >
+                        🎙️ 마이크 켜기
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const PitchQuizGame: React.FC<{ step: LessonStep, onComplete: () => void }> = ({ step, onComplete }) => {
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [activeSound, setActiveSound] = useState<'A' | 'B' | null>(null);
+    const [feedback, setFeedback] = useState<'idle' | 'success' | 'error'>('idle');
+
+    const synthRef = useRef<Tone.Synth | null>(null);
+
+    useEffect(() => {
+        synthRef.current = new Tone.Synth({
+            oscillator: { type: 'triangle' },
+            envelope: { attack: 0.05, decay: 0.2, sustain: 0.2, release: 0.5 }
+        }).toDestination();
+
+        // Auto-play on mount
+        const timer = setTimeout(playSounds, 1000);
+
+        return () => {
+            synthRef.current?.dispose();
+            clearTimeout(timer);
+        };
+    }, [step]);
+
+    const playSounds = async () => {
+        if (isPlaying) return;
+        setIsPlaying(true);
+        setFeedback('idle');
+        await Tone.start();
+
+        const [freqA, freqB] = step.options || [440, 880];
+
+        // Sound A
+        setActiveSound('A');
+        synthRef.current?.triggerAttackRelease(freqA, "4n");
+        
+        setTimeout(() => {
+            // Sound B
+            setActiveSound('B');
+            synthRef.current?.triggerAttackRelease(freqB, "4n");
+
+            setTimeout(() => {
+                setActiveSound(null);
+                setIsPlaying(false);
+            }, 800);
+        }, 1000);
+    };
+
+    const hasCompletedRef = useRef(false);
+
+    const handleChoice = (soundIdx: number) => {
+        if (isPlaying || hasCompletedRef.current) return;
+
+        const [freqA, freqB] = step.options || [440, 880];
+        const correctIdx = freqA > freqB ? 0 : 1;
+
+        if (soundIdx === correctIdx) {
+            setFeedback('success');
+            hasCompletedRef.current = true;
+            setTimeout(onComplete, 1200);
+        } else {
+            setFeedback('error');
+            synthRef.current?.triggerAttackRelease("G2", "4n");
+            setTimeout(() => setFeedback('idle'), 1000);
+        }
+    };
+
+    return (
+        <div className="flex flex-col items-center justify-between w-full max-w-[800px] h-[70vh] mx-auto animate-fade-in px-8">
+            <div className="text-center mb-8 relative z-10 w-full">
+                <h2 className="text-4xl font-black text-slate-800 mb-2">어떤 소리가 더 높을까요?</h2>
+                <p className="text-xl font-bold text-slate-500">{step.description}</p>
+            </div>
+
+            <div className="flex-1 w-full flex flex-col items-center justify-center gap-12 relative">
+                
+                {/* Clickable Sound Indicators */}
+                <div className="flex gap-12 sm:gap-16">
+                    <button
+                        onClick={() => handleChoice(0)}
+                        disabled={isPlaying}
+                        className={`
+                            w-40 h-48 rounded-[40px] border-b-[12px] flex flex-col items-center justify-center transition-all active:translate-y-2 active:border-b-4
+                            ${activeSound === 'A' ? 'bg-blue-500 border-blue-600 scale-105 shadow-2xl text-white' : 
+                              feedback === 'error' && (step.options?.[0] || 0) < (step.options?.[1] || 0) ? 'bg-slate-100 border-slate-200 text-slate-300' :
+                              'bg-white border-slate-200 text-slate-400 hover:border-blue-300 hover:text-blue-500'}
+                        `}
+                    >
+                        <Volume2 size={48} strokeWidth={3} className="mb-4" />
+                        <span className="text-xs font-black uppercase tracking-widest mb-1">Sound</span>
+                        <span className="text-5xl font-black">1</span>
+                    </button>
+
+                    <button
+                        onClick={() => handleChoice(1)}
+                        disabled={isPlaying}
+                        className={`
+                            w-40 h-48 rounded-[40px] border-b-[12px] flex flex-col items-center justify-center transition-all active:translate-y-2 active:border-b-4
+                            ${activeSound === 'B' ? 'bg-amber-500 border-amber-600 scale-105 shadow-2xl text-white' : 
+                              feedback === 'error' && (step.options?.[1] || 0) < (step.options?.[0] || 0) ? 'bg-slate-100 border-slate-200 text-slate-300' :
+                              'bg-white border-slate-200 text-slate-400 hover:border-amber-300 hover:text-amber-500'}
+                        `}
+                    >
+                        <Volume2 size={48} strokeWidth={3} className="mb-4" />
+                        <span className="text-xs font-black uppercase tracking-widest mb-1">Sound</span>
+                        <span className="text-5xl font-black">2</span>
+                    </button>
+                </div>
+
+                {/* Feedback Prompt */}
+                {feedback === 'error' && (
+                    <div className="absolute -bottom-12 animate-bounce text-rose-500 font-bold text-xl flex items-center gap-2">
+                        <span>😮 틀렸어요! 다시 들어볼까요?</span>
+                    </div>
+                )}
+            </div>
+
+            {/* Replay Instructions */}
+            <div className="mt-8 text-center">
+                <button 
+                    onClick={playSounds}
+                    disabled={isPlaying}
+                    className="group flex flex-col items-center gap-2"
+                >
+                    <div className={`
+                        w-16 h-16 rounded-2xl flex items-center justify-center transition-all
+                        ${isPlaying ? 'bg-slate-100 text-slate-300' : 'bg-white text-slate-600 border-2 border-slate-100 shadow-sm group-hover:bg-slate-50 group-active:scale-95'}
+                    `}>
+                        <Volume2 size={28} />
+                    </div>
+                    <span className="text-sm font-bold text-slate-400">다시 듣기</span>
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const PitchComparisonGame: React.FC<{ step: LessonStep, onComplete: () => void }> = ({ step, onComplete }) => {
+    const [value, setValue] = useState(0.5);
+    const [isRefPlaying, setIsRefPlaying] = useState(false);
+    const [isUserPlaying, setIsUserPlaying] = useState(false);
+    const [matchProgress, setMatchProgress] = useState(0); // 0 to 1
+    const [isMatched, setIsMatched] = useState(false);
+
+    const refOscRef = useRef<Tone.Oscillator | null>(null);
+    const userOscRef = useRef<Tone.Oscillator | null>(null);
+    const refVolRef = useRef<Tone.Volume | null>(null);
+    const userVolRef = useRef<Tone.Volume | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const matchTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    const targetFreq = step.target || 440;
+    const getFreq = (v: number) => 110 * Math.pow(2, v * 3);
+    const userFreq = getFreq(value);
+
+    // Initial setup
+    useEffect(() => {
+        const refVol = new Tone.Volume(-Infinity).toDestination();
+        const refOsc = new Tone.Oscillator(targetFreq, "sine").connect(refVol).start();
+        const userVol = new Tone.Volume(-Infinity).toDestination();
+        const userOsc = new Tone.Oscillator(userFreq, "triangle").connect(userVol).start();
+
+        refOscRef.current = refOsc;
+        refVolRef.current = refVol;
+        userOscRef.current = userOsc;
+        userVolRef.current = userVol;
+
+        return () => {
+            refOsc.dispose();
+            refVol.dispose();
+            userOsc.dispose();
+            userVol.dispose();
+            if (matchTimerRef.current) clearTimeout(matchTimerRef.current);
+        };
+    }, []);
+
+    // Update target if step changes
+    useEffect(() => {
+        if (refOscRef.current) {
+            refOscRef.current.frequency.value = targetFreq;
+        }
+    }, [targetFreq]);
+
+    const hasCompletedRef = useRef(false);
+
+    // Update proximity and user freq
+    useEffect(() => {
+        if (userOscRef.current) {
+            userOscRef.current.frequency.rampTo(userFreq, 0.05);
+        }
+
+        // Proximity logic
+        const diff = Math.abs(Math.log2(userFreq / targetFreq));
+        const proximity = Math.max(0, 1 - diff * 10); // 0.1 octave diff -> 0 proximity
+        setMatchProgress(proximity);
+
+        if (proximity > 0.95) {
+            if (!isMatched && !hasCompletedRef.current) {
+                setIsMatched(true);
+                hasCompletedRef.current = true;
+                matchTimerRef.current = setTimeout(() => {
+                    onComplete();
+                }, 1500);
+            }
+        } else {
+            setIsMatched(false);
+            if (matchTimerRef.current && !hasCompletedRef.current) {
+                clearTimeout(matchTimerRef.current);
+                matchTimerRef.current = null;
+            }
+        }
+    }, [value, targetFreq]);
+
+    const handleRefStart = async () => {
+        await Tone.start();
+        refVolRef.current?.volume.rampTo(-10, 0.1);
+        setIsRefPlaying(true);
+    };
+
+    const handleRefEnd = () => {
+        refVolRef.current?.volume.rampTo(-Infinity, 0.2);
+        setIsRefPlaying(false);
+    };
+
+    const handleInteraction = async (e: React.MouseEvent | React.TouchEvent) => {
+        if (!containerRef.current) return;
+        if (!isUserPlaying) {
+            await Tone.start();
+            userVolRef.current?.volume.rampTo(-10, 0.1);
+            setIsUserPlaying(true);
+        }
+        const rect = containerRef.current.getBoundingClientRect();
+        const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+        const relativeY = 1 - (clientY - rect.top) / rect.height;
+        setValue(Math.max(0, Math.min(1, relativeY)));
+    };
+
+    const handleInteractionEnd = () => {
+        userVolRef.current?.volume.rampTo(-Infinity, 0.2);
+        setIsUserPlaying(false);
+    };
+
+    return (
+        <div className="flex flex-col items-center justify-between w-full max-w-[1200px] h-[75vh] mx-auto animate-fade-in px-8">
+            <div className="text-center mb-12 relative z-10 w-full">
+                <h2 className="text-4xl font-black text-slate-800 mb-2">{step.title}</h2>
+                <p className="text-xl font-bold text-slate-500">{step.description}</p>
+            </div>
+
+            <div className="flex-1 w-full flex items-center justify-center gap-16 lg:gap-32 h-full py-8">
+                {/* Left: Reference Guide (Thin Slider) */}
+                <div className="h-full flex flex-col items-center gap-4">
+                    <div className="flex-1 w-12 bg-slate-100 rounded-full relative border-2 border-slate-200 overflow-hidden">
+                        {/* Target Marker */}
+                        <div 
+                            className="absolute left-0 right-0 h-2 bg-blue-500 rounded-full z-10 transition-all duration-500"
+                            style={{ 
+                                bottom: `${(Math.log2(targetFreq / 110) / 3) * 100}%`,
+                                transform: 'translateY(50%)',
+                                boxShadow: isRefPlaying ? '0 0 15px 5px rgba(59,130,246,0.5)' : 'none'
+                            }}
+                        />
+                        {/* Reference Interaction Button (Overlap or separate) */}
+                        <button
+                            onMouseDown={handleRefStart}
+                            onMouseUp={handleRefEnd}
+                            onMouseLeave={handleRefEnd}
+                            onTouchStart={handleRefStart}
+                            onTouchEnd={handleRefEnd}
+                            className={`
+                                absolute inset-0 w-full flex items-center justify-center transition-colors
+                                ${isRefPlaying ? 'bg-blue-500/10' : 'hover:bg-slate-200/50'}
+                            `}
+                        >
+                            <Volume2 size={24} className={isRefPlaying ? 'text-blue-500' : 'text-slate-300'} strokeWidth={3} />
+                        </button>
+                    </div>
+                    <span className="font-black text-slate-400 uppercase tracking-widest text-[10px] text-center leading-tight">
+                        기준 가이드
+                    </span>
+                </div>
+
+                {/* Center: Match Slider */}
+                <div className="relative group flex items-center justify-center w-[300px] h-full">
+                    {/* Proximity Halo */}
+                    <div 
+                        className="absolute inset-0 rounded-[64px] transition-all duration-300 pointer-events-none"
+                        style={{ 
+                            boxShadow: `0 0 ${matchProgress * 100}px ${matchProgress * 40}px rgba(88, 204, 2, ${matchProgress * 0.4})`,
+                            border: `${matchProgress * 8}px solid rgba(88, 204, 2, ${matchProgress})`,
+                            transform: `scale(${1 + (1 - matchProgress) * 0.1})`
+                        }}
+                    />
+
+                    {/* Interactive Slider Container */}
+                    <div 
+                        ref={containerRef}
+                        className="w-full h-full bg-slate-50 rounded-[48px] relative overflow-hidden shadow-inner border-4 border-white cursor-pointer"
+                        onMouseDown={handleInteraction}
+                        onMouseMove={(e) => e.buttons === 1 && handleInteraction(e)}
+                        onMouseUp={handleInteractionEnd}
+                        onMouseLeave={handleInteractionEnd}
+                        onTouchStart={handleInteraction}
+                        onTouchMove={handleInteraction}
+                        onTouchEnd={handleInteractionEnd}
+                    >
+                        {/* Perfect Match Success Flash */}
+                        {isMatched && (
+                            <div className="absolute inset-0 bg-[#58CC02]/10 animate-pulse z-10" />
+                        )}
+
+                        {/* Slider Handle (Dart) */}
+                        <div 
+                            className="absolute left-1/2 -translate-x-1/2 w-20 h-2 bg-slate-800 rounded-full z-20 pointer-events-none transition-none"
+                            style={{ bottom: `${value * 100}%` }}
+                        >
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full border-4 border-slate-800 shadow-lg flex items-center justify-center">
+                                <Music size={24} className={isUserPlaying ? 'text-slate-800' : 'text-slate-200'} strokeWidth={3} />
+                            </div>
+                        </div>
+
+                        {/* Visual Guide Layers (Similar to Intro but cleaner) */}
+                        <div className="absolute inset-0 opacity-10 pointer-events-none">
+                            <div className="h-full w-full flex flex-col items-center justify-between py-12 text-slate-300 font-bold uppercase text-xs">
+                                <span>High</span>
+                                <div className="w-8 h-1 bg-slate-200 rounded-full" />
+                                <div className="w-8 h-1 bg-slate-200 rounded-full" />
+                                <div className="w-12 h-1 bg-slate-300 rounded-full" />
+                                <div className="w-8 h-1 bg-slate-200 rounded-full" />
+                                <div className="w-8 h-1 bg-slate-200 rounded-full" />
+                                <span>Low</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right: Feedback Zone */}
+                <div className="w-32 flex flex-col items-center gap-6">
+                    <div 
+                        className={`
+                            w-32 h-32 rounded-full flex items-center justify-center transition-all duration-500
+                            ${isMatched ? 'bg-[#58CC02] text-white scale-110' : 'bg-slate-100 text-slate-300'}
+                        `}
+                    >
+                        {isMatched ? <Check size={56} strokeWidth={4} className="animate-pop-in" /> : <Star size={56} fill="currentColor" strokeWidth={0} className="opacity-30" />}
+                    </div>
+                    <div className="flex flex-col items-center gap-1 h-8">
+                        {isMatched ? (
+                            <span className="font-black text-[#58CC02] animate-bounce shrink-0">그대로 유지하세요!</span>
+                        ) : matchProgress > 0.6 ? (
+                            <span className="font-bold text-slate-400">거의 다 왔어요!</span>
+                        ) : null}
+                    </div>
+                </div>
+            </div>
+
+            {/* Hint message */}
+            <div className="h-20 flex items-center justify-center w-full">
+                <div className="bg-white px-8 py-4 rounded-2xl shadow-sm border border-slate-100 text-slate-500 font-bold flex gap-3 items-center">
+                    <span className="text-2xl">👂</span>
+                    두 소리가 똑같아지면 화면이 반짝거려요!
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const PitchIntroGame: React.FC<{ step: LessonStep, onComplete: () => void }> = ({ step, onComplete }) => {
+    const [value, setValue] = useState(0.5); // 0.0 to 1.0
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isDemoPlaying, setIsDemoPlaying] = useState(false);
+
+    const oscRef = useRef<Tone.Oscillator | null>(null);
+    const volRef = useRef<Tone.Volume | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Initial frequency mapping: 110Hz (A2) to 880Hz (A5)
+    const getFreq = (v: number) => 110 * Math.pow(2, v * 3);
+
+    useEffect(() => {
+        const vol = new Tone.Volume(-Infinity).toDestination();
+        const osc = new Tone.Oscillator(getFreq(value), "triangle").connect(vol).start();
+        oscRef.current = osc;
+        volRef.current = vol;
+
+        return () => {
+            osc.dispose();
+            vol.dispose();
+        };
+    }, []);
+
+    // Update frequency on value change
+    useEffect(() => {
+        if (oscRef.current) {
+            oscRef.current.frequency.rampTo(getFreq(value), 0.1);
+        }
+    }, [value]);
+
+    const handleInteraction = async (e: React.MouseEvent | React.TouchEvent) => {
+        if (!containerRef.current || isDemoPlaying) return;
+
+        // Start audio on first interaction if not playing
+        if (!isPlaying && !isDemoPlaying) {
+            await Tone.start();
+            volRef.current?.volume.rampTo(-10, 0.2);
+            setIsPlaying(true);
+        }
+
+        const rect = containerRef.current.getBoundingClientRect();
+        const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+        const relativeY = 1 - (clientY - rect.top) / rect.height;
+        setValue(Math.max(0, Math.min(1, relativeY)));
+    };
+
+    const stopAudio = () => {
+        volRef.current?.volume.rampTo(-Infinity, 0.2);
+        setIsPlaying(false);
+    };
+
+    const playDemo = async () => {
+        if (isDemoPlaying) return;
+        setIsDemoPlaying(true);
+        await Tone.start();
+        volRef.current?.volume.rampTo(-10, 0.2);
+
+        // Sequence: Low -> High -> Low -> Mid
+        const sequence = [0.1, 0.9, 0.2, 0.5];
+        let i = 0;
+        const interval = setInterval(() => {
+            if (i >= sequence.length) {
+                clearInterval(interval);
+                setIsDemoPlaying(false);
+                volRef.current?.volume.rampTo(-Infinity, 0.5);
+                setTimeout(onComplete, 1000);
+                return;
+            }
+            setValue(sequence[i]);
+            i++;
+        }, 1200);
+    };
+
+    // Listen mode automatically plays demo
+    useEffect(() => {
+        if (step.type === 'listen') {
+            const timer = setTimeout(playDemo, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [step]);
+
+    // Visual colors based on value
+    const getBgColor = () => {
+        if (value > 0.7) return 'rgba(239, 68, 68, opacity)'; // Red
+        if (value > 0.3) return 'rgba(245, 158, 11, opacity)'; // Yellow
+        return 'rgba(16, 185, 129, opacity)'; // Green
+    };
+
+    return (
+        <div className="flex flex-col items-center justify-between w-full max-w-[1000px] h-[70vh] mx-auto animate-fade-in relative">
+            
+            {/* Instruction Header */}
+            <div className="text-center mb-8 relative z-10">
+                <h2 className="text-4xl font-black text-slate-800 mb-2">{step.title}</h2>
+                <p className="text-xl font-bold text-slate-500">{step.description}</p>
+            </div>
+
+            {/* Vertical Slider Experience */}
+            <div 
+                ref={containerRef}
+                className="flex-1 w-full max-w-[400px] bg-slate-100 rounded-[48px] relative overflow-hidden shadow-inner border-4 border-white cursor-pointer group"
+                onMouseDown={handleInteraction}
+                onMouseMove={(e) => e.buttons === 1 && handleInteraction(e)}
+                onMouseUp={stopAudio}
+                onTouchStart={handleInteraction}
+                onTouchMove={handleInteraction}
+                onTouchEnd={stopAudio}
+            >
+                {/* Visual Layers (Organic Skeches) */}
+                <div className="absolute inset-0 z-0 transition-colors duration-500"
+                    style={{ backgroundColor: getBgColor().replace('opacity', '0.05') }}>
+                    
+                    {/* Red Scribble (Top) */}
+                    <div className="absolute top-0 w-full h-1/3 transition-opacity duration-300 pointer-events-none"
+                        style={{ opacity: value > 0.6 ? (value - 0.6) * 2.5 : 0 }}>
+                        <svg className="w-full h-full text-red-400/30" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <path d="M0,20 Q20,10 40,30 T80,10 T100,40 V100 H0 Z" fill="currentColor" />
+                            <path d="M0,40 Q10,60 30,50 T70,70 T100,50" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="5,5" />
+                        </svg>
+                    </div>
+
+                    {/* Yellow Scribble (Middle) */}
+                    <div className="absolute top-1/3 w-full h-1/3 transition-opacity duration-300 pointer-events-none"
+                         style={{ opacity: 1 - Math.abs(value - 0.5) * 2 }}>
+                        <svg className="w-full h-full text-amber-400/30" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <path d="M0,50 Q25,30 50,50 T100,50 V100 H0 Z" fill="currentColor" />
+                            <circle cx="20" cy="30" r="10" fill="currentColor" />
+                            <circle cx="80" cy="40" r="15" fill="currentColor" />
+                        </svg>
+                    </div>
+
+                    {/* Green Scribble (Bottom) */}
+                    <div className="absolute bottom-0 w-full h-1/3 transition-opacity duration-300 pointer-events-none"
+                        style={{ opacity: value < 0.4 ? (0.4 - value) * 2.5 : 0 }}>
+                        <svg className="w-full h-full text-emerald-400/30" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <path d="M0,80 Q30,95 60,80 T100,90 V100 H0 Z" fill="currentColor" />
+                            <path d="M10,70 L30,90 L50,70 L70,90 L90,70" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                        </svg>
+                    </div>
+                </div>
+
+                {/* The "Handle" or Indicator Pillar */}
+                <div 
+                    className="absolute left-1/2 -translate-x-1/2 w-16 bg-white rounded-full shadow-2xl border-4 border-slate-200 z-20 pointer-events-none"
+                    style={{ 
+                        bottom: `${value * 100}%`,
+                        height: '120px',
+                        transform: `translate(-50%, 50%) scale(${1 + value * 0.5})`, // Grows as it goes up
+                        backgroundColor: getBgColor().replace('opacity', '1')
+                    }}
+                >
+                </div>
+
+                {/* Visual Height Lines */}
+                <div className="absolute inset-y-12 left-8 flex flex-col justify-between text-slate-400 font-black text-sm uppercase tracking-tighter pointer-events-none opacity-50">
+                    <span>High ☁️</span>
+                    <span>Low 🌊</span>
+                </div>
+            </div>
+
+            {/* Bottom Actions */}
+            <div className="mt-12 flex flex-col items-center gap-4">
+                {step.type === 'play' ? (
+                    <button 
+                        onClick={onComplete}
+                        className="px-12 py-6 bg-[#58CC02] text-white rounded-[24px] font-black text-2xl shadow-[0_8px_0_rgba(74,171,2,1)] hover:brightness-110 active:translate-y-[8px] active:shadow-none transition-all"
+                    >
+                        이해했어요!
+                    </button>
+                ) : (
+                    <div className="flex gap-2 items-center text-slate-400 font-bold">
+                        <div className="w-3 h-3 bg-[#4285F4] rounded-full animate-pulse" />
+                        달이가 소리를 들려주는 중...
+                    </div>
+                )}
+            </div>
+
         </div>
     );
 };
