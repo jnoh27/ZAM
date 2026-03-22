@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Lock, Play, Star } from 'lucide-react';
+import { Check, Lock, Play, Star, TrendingUp, AudioLines, LayoutGrid, Music2 } from 'lucide-react';
 
 interface LearningRoadmapProps {
     onSelectUnit: (unitId: number) => void;
@@ -10,7 +10,7 @@ interface Unit {
     title: string;
     description: string;
     color: string;
-    icon: string;
+    icon: React.ReactNode;
 }
 
 export const UNITS: Record<number, Unit[]> = {
@@ -45,8 +45,87 @@ export const UNITS: Record<number, Unit[]> = {
         }
     ],
     2: [],
-    3: [],
-    4: []
+    3: [
+        {
+            id: 'harmony-intro',
+            title: '소리의 겹침',
+            description: '두 소리가 함께 울리는 경험',
+            color: '#7C4DFF',
+            icon: '🎵',
+        },
+        {
+            id: 'harmony-feeling',
+            title: '어울림과 긴장',
+            description: '편안한 소리와 긴장되는 소리',
+            color: '#AA00FF',
+            icon: '🎭',
+        },
+        {
+            id: 'harmony-blocks',
+            title: '화음 블록',
+            description: '소리를 블록으로 보기',
+            color: '#6200EA',
+            icon: '▦',
+        },
+        {
+            id: 'harmony-stack',
+            title: '소리 쌓기',
+            description: '두 음을 직접 쌓아보기',
+            color: '#304FFE',
+            icon: '▲',
+        },
+        {
+            id: 'harmony-triad',
+            title: '세 음 화음',
+            description: '세 소리가 만드는 풍성함',
+            color: '#00BFA5',
+            icon: '♪',
+        },
+        {
+            id: 'harmony-mood',
+            title: '밝은 화음, 어두운 화음',
+            description: '화음이 가진 감정 느끼기',
+            color: '#FF6D00',
+            icon: '◐',
+        },
+        {
+            id: 'harmony-progression',
+            title: '화음의 움직임',
+            description: '화음은 흘러가요',
+            color: '#C51162',
+            icon: '→',
+        },
+    ],
+    4: [
+        {
+            id: 'melody-direction',
+            title: '소리의 방향',
+            description: '소리가 위아래로 움직이는 것을 느껴봐요',
+            color: '#FF6D00',
+            icon: <TrendingUp size={28} strokeWidth={3} />,
+        },
+        {
+            id: 'melody-pattern',
+            title: '세 음 패턴',
+            description: '세 개의 음으로 선을 그려봐요',
+            color: '#00BFA5',
+            icon: <AudioLines size={28} strokeWidth={3} />,
+        },
+        {
+            id: 'melody-rhythm',
+            title: '리듬 위의 멜로디',
+            description: '리듬 위에 음을 놓아봐요',
+            color: '#304FFE',
+            icon: <LayoutGrid size={28} strokeWidth={3} />,
+        },
+        {
+            id: 'melody-compose',
+            title: '코드 위의 멜로디',
+            description: '코드 위에서 멜로디를 만들어봐요',
+            color: '#C51162',
+            icon: <Music2 size={28} strokeWidth={3} />,
+        },
+    ]
 };
 
 export const LearningRoadmap: React.FC<LearningRoadmapProps> = ({ onSelectUnit }) => {

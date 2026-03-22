@@ -42,6 +42,7 @@ export const Arpeggios: React.FC<ArpeggiosProps> = ({ onBack }) => {
     const [patternIndex, setPatternIndex] = useState(0);
     const [activeNoteIndex, setActiveNoteIndex] = useState(-1);
     const [isLoaded, setIsLoaded] = useState(false);
+    const [hasStarted, setHasStarted] = useState(false);
 
     const synthRef = useRef<Tone.Sampler | null>(null);
     const sequenceRef = useRef<Tone.Sequence | null>(null);
@@ -232,7 +233,30 @@ export const Arpeggios: React.FC<ArpeggiosProps> = ({ onBack }) => {
     };
 
     return (
-        <div className="w-full h-full flex flex-col bg-[#212121]">
+        <div className="w-full h-full flex flex-col bg-[#212121] relative overflow-hidden">
+            {!isLoaded && (
+                <div className="absolute inset-0 bg-[#212121]/90 flex flex-col items-center justify-center z-[100] backdrop-blur-sm">
+                    <div className="w-16 h-16 border-4 border-[#EA4335] border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <div className="text-white text-xl font-bold animate-pulse">악기 로딩 중...</div>
+                </div>
+            )}
+            
+            {isLoaded && !hasStarted && (
+                <div className="absolute inset-0 bg-[#212121]/90 flex flex-col items-center justify-center z-[90] backdrop-blur-sm">
+                    <button 
+                        onClick={async () => {
+                            await Tone.start();
+                            if (Tone.context.state !== 'running') await Tone.context.resume();
+                            setHasStarted(true);
+                        }}
+                        className="px-8 py-4 bg-[#EA4335] hover:bg-rose-600 text-white rounded-full font-black text-2xl shadow-[0_8px_0_rgba(185,28,28,1)] hover:translate-y-[2px] hover:shadow-[0_6px_0_rgba(185,28,28,1)] active:translate-y-[8px] active:shadow-none transition-all"
+                    >
+                        시작하기
+                    </button>
+                    <div className="text-white/60 font-bold mt-6">화면을 탭하여 오디오를 활성화하세요</div>
+                </div>
+            )}
+
             <header className="p-4 border-b-2 border-white/10 flex items-center justify-between z-10">
                 <button onClick={() => { Tone.Transport.stop(); onBack(); }} className="p-3 bg-white/10 rounded-full hover:bg-white/20 text-white transition-colors">
                     <ArrowLeft size={32} strokeWidth={3} />
@@ -279,11 +303,10 @@ export const Arpeggios: React.FC<ArpeggiosProps> = ({ onBack }) => {
                     {/* Central Play Button */}
                     <button
                         onClick={handlePlayToggle}
-                        disabled={!isLoaded}
                         className={`
                     absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
                     w-32 h-32 rounded-full flex items-center justify-center z-20 shadow-2xl transition-transform active:scale-95 border-4 border-[#212121]
-                    ${!isLoaded ? 'bg-slate-500 text-slate-300 cursor-not-allowed' : isPlaying ? 'bg-white text-[#212121]' : 'bg-[#EA4335] text-white'}
+                    ${isPlaying ? 'bg-white text-[#212121]' : 'bg-[#EA4335] text-white'}
                         `}
                     >
                         {isPlaying ? <Pause size={48} fill="currentColor" /> : <Play size={48} fill="currentColor" className="ml-2" />}

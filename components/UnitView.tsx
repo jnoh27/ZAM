@@ -55,7 +55,7 @@ export const UnitView: React.FC<UnitViewProps> = ({ unitId, onBack, onSelectLess
     };
 
     return (
-        <div className="min-h-screen bg-[#F8F9FA] flex flex-col items-center overflow-hidden">
+        <div className="min-h-screen bg-[#F8F9FA] flex flex-col items-center overflow-y-auto">
             {/* Header */}
             <div className="w-full bg-white border-b-2 border-slate-100 p-4 sticky top-0 z-50">
                 <div className="max-w-md mx-auto flex items-center justify-between">
@@ -80,7 +80,7 @@ export const UnitView: React.FC<UnitViewProps> = ({ unitId, onBack, onSelectLess
             {/* Roadmap */}
             <div className="w-full flex flex-col items-center pb-32 pt-8">
                 {activeLessons.length > 0 ? (
-                    <div className="w-full max-w-[400px] relative mt-4">
+                    <div className="w-full max-w-[400px] relative mt-4" style={{ minHeight: `${(activeLessons.length) * ITEM_HEIGHT + 120}px` }}>
                         {/* SVG Path Background */}
                         <svg
                             className="absolute top-0 left-0 w-full pointer-events-none z-0"
@@ -102,7 +102,7 @@ export const UnitView: React.FC<UnitViewProps> = ({ unitId, onBack, onSelectLess
                             {nodes.map((unit, index) => {
                                 const isCompleted = completedLessons.includes(unit.id);
                                 const isNext = !isCompleted && (index === 0 || completedLessons.includes(activeLessons[index - 1].id));
-                                const isLocked = !isCompleted && !isNext;
+                                const isLocked = false; // !isCompleted && !isNext; // Temporarily unlocked for testing
 
                                 return (
                                     <div

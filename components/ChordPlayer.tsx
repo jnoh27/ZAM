@@ -13,6 +13,8 @@ export const ChordPlayer: React.FC<ChordPlayerProps> = ({ onBack }) => {
     const [activeSlot, setActiveSlot] = useState<number | null>(null);
     const [currentStep, setCurrentStep] = useState(-1);
     const [progression, setProgression] = useState<(Chord | null)[]>([null, null, null, null]);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [hasStarted, setHasStarted] = useState(false);
 
     const synthRef = useRef<Tone.Sampler | null>(null);
     const loopRef = useRef<Tone.Sequence | null>(null);
@@ -32,7 +34,8 @@ export const ChordPlayer: React.FC<ChordPlayerProps> = ({ onBack }) => {
                 "C5": "C5.mp3"
             },
             baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/piano/",
-            volume: -4
+            volume: -4,
+            onload: () => setIsLoaded(true)
         }).toDestination();
 
         const tremolo = new Tone.Tremolo(4, 0.2).toDestination().start();
@@ -108,7 +111,30 @@ export const ChordPlayer: React.FC<ChordPlayerProps> = ({ onBack }) => {
     const COLORS = ['#EA4335', '#FBBC04', '#34A853', '#4285F4', '#FF7043', '#AB47BC', '#00ACC1'];
 
     return (
-        <div className="w-full h-full flex flex-col bg-[#F8F9FA]">
+        <div className="w-full h-full flex flex-col bg-[#F8F9FA] relative overflow-hidden">
+            {!isLoaded && (
+                <div className="absolute inset-0 bg-[#F8F9FA]/90 flex flex-col items-center justify-center z-[100] backdrop-blur-sm">
+                    <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <div className="text-slate-800 text-xl font-bold animate-pulse">악기 로딩 중...</div>
+                </div>
+            )}
+            
+            {isLoaded && !hasStarted && (
+                <div className="absolute inset-0 bg-[#F8F9FA]/90 flex flex-col items-center justify-center z-[90] backdrop-blur-sm">
+                    <button 
+                        onClick={async () => {
+                            await Tone.start();
+                            if (Tone.context.state !== 'running') await Tone.context.resume();
+                            setHasStarted(true);
+                        }}
+                        className="px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-black text-2xl shadow-[0_8px_0_rgba(29,78,216,1)] hover:translate-y-[2px] hover:shadow-[0_6px_0_rgba(29,78,216,1)] active:translate-y-[8px] active:shadow-none transition-all"
+                    >
+                        시작하기
+                    </button>
+                    <div className="text-slate-500 font-bold mt-6">화면을 탭하여 오디오를 활성화하세요</div>
+                </div>
+            )}
+
             <header className="bg-white p-4 border-b-2 flex items-center justify-between">
                 <button onClick={() => { Tone.Transport.stop(); onBack(); }} className="p-3 bg-[#E8EAED] rounded-full">
                     <ArrowLeft size={32} strokeWidth={3} className="text-[#5F6368]" />
