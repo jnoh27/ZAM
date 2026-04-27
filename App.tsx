@@ -15,6 +15,8 @@ import { Soundwaves } from './components/Soundwaves';
 import { HelpModal } from './components/HelpModal';
 import { UnitView } from './components/UnitView';
 import { Music, Mic2, Piano, PenTool, Smile, Speaker, GitGraph, GraduationCap, LayoutGrid, Activity, Mic, Layers, Waves, RotateCw } from 'lucide-react';
+import zamPlayground from './src/assets/zam_playground.png';
+import zamLearning from './src/assets/zam_learning.png';
 
 type View = 'dashboard' | 'tool-melody' | 'tool-beat' | 'tool-chord' | 'game-kandinsky' | 'game-oscillators' | 'game-strings' | 'game-arpeggios' | 'game-voicespinner' | 'game-chords' | 'game-harmonics' | 'game-soundwaves';
 type Tab = 'playground' | 'learning';
@@ -106,13 +108,15 @@ const App: React.FC = () => {
                             학교
                         </button>
                     </div>
-
-                    <button
-                        onClick={() => setIsHelpOpen(true)}
-                        className="absolute right-8 w-8 h-8 rounded-full bg-[#EADDFF] flex items-center justify-center text-[#9D71E8] font-bold cursor-pointer hover:bg-[#D1C4E9] transition-colors"
-                    >
-                        ?
-                    </button>
+                    
+                    <div className="absolute right-8 flex items-center gap-4">
+                        <button
+                            onClick={() => setIsHelpOpen(true)}
+                            className="w-8 h-8 rounded-full bg-[#EADDFF] flex items-center justify-center text-[#9D71E8] font-bold cursor-pointer hover:bg-[#D1C4E9] transition-colors shadow-sm"
+                        >
+                            ?
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -123,7 +127,7 @@ const App: React.FC = () => {
 
                         {/* Header & Mascot Area */}
                         <header className="flex flex-row items-end justify-center gap-8 mt-12 mb-12">
-                            <img src="/mascot_playground.png" alt="ZAM Mascot" className="w-40 h-auto object-contain drop-shadow-sm -mb-4" />
+                            <img src={zamPlayground} alt="ZAM Mascot" className="w-40 h-auto object-contain drop-shadow-sm -mb-4" />
                             <div className="flex flex-col items-center text-center pb-4">
                                 <h1 className="text-4xl font-extrabold text-[#111111] tracking-tight mb-3">실험실</h1>
                                 <p className="text-[#333333] font-medium text-[17px]">가볍게 즐기며 음악을 탐구하고 만들어 보세요.</p>
@@ -230,7 +234,7 @@ const App: React.FC = () => {
                                 <h1 className="text-4xl font-extrabold text-[#111111] tracking-tight mb-3">배우기</h1>
                                 <p className="text-[#333333] font-medium text-[17px]">차근차근 음악의 기초를 배워봐요.</p>
                             </div>
-                            <img src="/mascot_learning.png" alt="Learning Mascot" className="w-40 h-auto object-contain drop-shadow-sm -mb-4" />
+                            <img src={zamLearning} alt="Learning Mascot" className="w-40 h-auto object-contain drop-shadow-sm -mb-4" />
                         </header>
                         <LearningRoadmap
                             onSelectUnit={setActiveUnit}
