@@ -15,7 +15,7 @@ export const UnitView: React.FC<UnitViewProps> = ({ unitId, onBack, onSelectLess
     // SVG Path Constants
     const ITEM_HEIGHT = 160;
     const START_Y = 80;
-    const AMPLITUDE = 100; // How wide the snake is
+    const AMPLITUDE = 40; // How wide the snake is
     const CENTER_X = 200; // SVG Width / 2
 
     // Generate Path String
@@ -58,7 +58,7 @@ export const UnitView: React.FC<UnitViewProps> = ({ unitId, onBack, onSelectLess
         <div className="min-h-screen bg-[#F8F9FA] flex flex-col items-center overflow-y-auto">
             {/* Header */}
             <div className="w-full bg-white border-b-2 border-slate-100 p-4 sticky top-0 z-50">
-                <div className="max-w-md mx-auto flex items-center justify-between">
+                <div className="w-full flex items-center justify-between lg:px-8">
                     <button
                         onClick={onBack}
                         className="w-12 h-12 flex items-center justify-center rounded-xl hover:bg-slate-50 text-slate-400 hover:text-slate-600 transition-colors"
