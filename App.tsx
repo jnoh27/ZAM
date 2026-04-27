@@ -14,12 +14,13 @@ import { Harmonics } from './components/Harmonics';
 import { Soundwaves } from './components/Soundwaves';
 import { HelpModal } from './components/HelpModal';
 import { UnitView } from './components/UnitView';
+import { Studio } from './components/Studio';
 import { Music, Mic2, Piano, PenTool, Smile, Speaker, GitGraph, GraduationCap, LayoutGrid, Activity, Mic, Layers, Waves, RotateCw } from 'lucide-react';
 import zamPlayground from './src/assets/zam_playground.png';
 import zamLearning from './src/assets/zam_learning.png';
 
 type View = 'dashboard' | 'tool-melody' | 'tool-beat' | 'tool-chord' | 'game-kandinsky' | 'game-oscillators' | 'game-strings' | 'game-arpeggios' | 'game-voicespinner' | 'game-chords' | 'game-harmonics' | 'game-soundwaves';
-type Tab = 'playground' | 'learning';
+type Tab = 'playground' | 'learning' | 'studio';
 
 const App: React.FC = () => {
     const [activeTab, setActiveTab] = useState<Tab>('playground');
@@ -107,6 +108,12 @@ const App: React.FC = () => {
                         >
                             학교
                         </button>
+                        <button
+                            onClick={() => setActiveTab('studio')}
+                            className={`px-4 py-5 text-[15px] font-bold border-b-[3px] transition-colors ${activeTab === 'studio' ? 'border-[#9D71E8] text-[#9D71E8]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                        >
+                            스튜디오
+                        </button>
                     </div>
                     
                     <div className="absolute right-8 flex items-center gap-4">
@@ -121,8 +128,8 @@ const App: React.FC = () => {
             </div>
 
             {/* Scrollable Main Content */}
-            <div className="flex-1 w-full overflow-y-auto pb-32 scroll-smooth">
-                {activeTab === 'playground' ? (
+            <div className={`flex-1 w-full overflow-y-auto scroll-smooth ${activeTab === 'studio' ? '' : 'pb-32'}`}>
+                {activeTab === 'playground' && (
                     <div className="w-full max-w-4xl mx-auto px-4">
 
                         {/* Header & Mascot Area */}
@@ -226,8 +233,8 @@ const App: React.FC = () => {
                             />
                         </div>
                     </div>
-                ) : (
-                    /* Learning Roadmap */
+                )}
+                {activeTab === 'learning' && (
                     <div className="w-full max-w-4xl mx-auto px-4 mt-12 animate-slide-up delay-100">
                         <header className="flex flex-row items-end justify-center gap-8 mb-12">
                             <div className="flex flex-col items-center text-center pb-4">
@@ -239,6 +246,11 @@ const App: React.FC = () => {
                         <LearningRoadmap
                             onSelectUnit={setActiveUnit}
                         />
+                    </div>
+                )}
+                {activeTab === 'studio' && (
+                    <div className="w-full flex-1 animate-slide-up delay-100 flex flex-col min-h-[calc(100vh-64px)]">
+                        <Studio />
                     </div>
                 )}
             </div>

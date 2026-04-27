@@ -19,3 +19,5 @@ export type Melody = (string | null)[];
 export type Progression = [Chord, Chord, Chord, Chord];
 
 export type NoteMode = 'chord' | 'scale' | 'chromatic';
+
+export type BeatGrid = boolean[][];
