@@ -1,5 +1,9 @@
 import React from 'react';
-import { Check, Lock, Play, Star, TrendingUp, AudioLines, LayoutGrid, Music2 } from 'lucide-react';
+import { 
+    Check, Lock, Play, Star, TrendingUp, AudioLines, LayoutGrid, Music2, 
+    Drum, Hand, Puzzle, Crown, Bird, Target, CircleHelp, Mic, Brain, Activity, 
+    Music, Drama, Blocks, Layers, Music3, Contrast, MoveRight 
+} from 'lucide-react';
 
 interface LearningRoadmapProps {
     onSelectUnit: (unitId: number) => void;
@@ -20,28 +24,28 @@ export const UNITS: Record<number, Unit[]> = {
             title: '리듬의 기초',
             description: '음악의 규칙적인 박동을 느껴봐요',
             color: '#EA4335',
-            icon: '🥁',
+            icon: <Drum size={28} strokeWidth={3} />,
         },
         {
             id: 'rhythm-beat',
             title: '기본 비트',
             description: '쿵짝쿵짝 기본 비트를 익혀요',
             color: '#FF7043',
-            icon: '👋',
+            icon: <Hand size={28} strokeWidth={3} />,
         },
         {
             id: 'rhythm-pattern',
             title: '리듬 패턴',
             description: '다양한 리듬 패턴을 만들어요',
             color: '#F4B400',
-            icon: '🧩',
+            icon: <Puzzle size={28} strokeWidth={3} />,
         },
         {
             id: 'rhythm-master',
             title: '리듬 마스터',
             description: '나만의 멋진 리듬을 완성해요',
             color: '#34A853',
-            icon: '👑',
+            icon: <Crown size={28} strokeWidth={3} />,
         }
     ],
     2: [
@@ -50,42 +54,42 @@ export const UNITS: Record<number, Unit[]> = {
             title: '음높이의 기초',
             description: '소리는 위아래로 움직여요',
             color: '#4285F4',
-            icon: '🕊️',
+            icon: <Bird size={28} strokeWidth={3} />,
         },
         {
             id: 'pitch-match',
             title: '같은 음 찾기',
             description: '귀를 기울여 똑같은 높이를 찾아요',
             color: '#34A853',
-            icon: '🎯',
+            icon: <Target size={28} strokeWidth={3} />,
         },
         {
             id: 'pitch-quiz',
             title: '음 높이 퀴즈',
             description: '어떤 소리가 더 높을까요?',
             color: '#F4B400',
-            icon: '❓',
+            icon: <CircleHelp size={28} strokeWidth={3} />,
         },
         {
             id: 'pitch-vocal',
             title: '목소리로 맞춰보기',
             description: '마이크로 직접 소리를 내보세요',
             color: '#EA4335',
-            icon: '🎙️',
+            icon: <Mic size={28} strokeWidth={3} />,
         },
         {
             id: 'pitch-memory',
             title: '음 기억하기',
             description: '소리를 듣고 잠시 뒤에 불러보세요',
             color: '#A142F4',
-            icon: '🧠',
+            icon: <Brain size={28} strokeWidth={3} />,
         },
         {
             id: 'pitch-patterns',
             title: '음 패턴 따라하기',
             description: '짧은 멜로디의 움직임을 따라가요',
             color: '#FF7043',
-            icon: '〰️',
+            icon: <Activity size={28} strokeWidth={3} />,
         }
     ],
     3: [
@@ -94,49 +98,49 @@ export const UNITS: Record<number, Unit[]> = {
             title: '소리의 겹침',
             description: '두 소리가 함께 울리는 경험',
             color: '#7C4DFF',
-            icon: '🎵',
+            icon: <Music size={28} strokeWidth={3} />,
         },
         {
             id: 'harmony-feeling',
             title: '어울림과 긴장',
             description: '편안한 소리와 긴장되는 소리',
             color: '#AA00FF',
-            icon: '🎭',
+            icon: <Drama size={28} strokeWidth={3} />,
         },
         {
             id: 'harmony-blocks',
             title: '화음 블록',
             description: '소리를 블록으로 보기',
             color: '#6200EA',
-            icon: '▦',
+            icon: <Blocks size={28} strokeWidth={3} />,
         },
         {
             id: 'harmony-stack',
             title: '소리 쌓기',
             description: '두 음을 직접 쌓아보기',
             color: '#304FFE',
-            icon: '▲',
+            icon: <Layers size={28} strokeWidth={3} />,
         },
         {
             id: 'harmony-triad',
             title: '세 음 화음',
             description: '세 소리가 만드는 풍성함',
             color: '#00BFA5',
-            icon: '♪',
+            icon: <Music3 size={28} strokeWidth={3} />,
         },
         {
             id: 'harmony-mood',
             title: '밝은 화음, 어두운 화음',
             description: '화음이 가진 감정 느끼기',
             color: '#FF6D00',
-            icon: '◐',
+            icon: <Contrast size={28} strokeWidth={3} />,
         },
         {
             id: 'harmony-progression',
             title: '화음의 움직임',
             description: '화음은 흘러가요',
             color: '#C51162',
-            icon: '→',
+            icon: <MoveRight size={28} strokeWidth={3} />,
         },
     ],
     4: [

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Lock, Star, ArrowLeft } from 'lucide-react';
+import { Check, Lock, Star, ArrowLeft, Construction } from 'lucide-react';
 import { UNITS } from './LearningRoadmap';
 
 interface UnitViewProps {
@@ -143,13 +143,10 @@ export const UnitView: React.FC<UnitViewProps> = ({ unitId, onBack, onSelectLess
                                             ) : isLocked ? (
                                                 <Lock size={24} strokeWidth={3} className="opacity-50" />
                                             ) : (
-                                                <span className="text-3xl filter drop-shadow-sm">{unit.icon}</span>
+                                                <span className="text-3xl filter drop-shadow-sm flex items-center justify-center">{unit.icon}</span>
                                             )}
 
-                                            {/* Shine effect */}
-                                            {!isLocked && (
-                                                <div className="absolute top-2 left-3 w-3 h-3 bg-white/30 rounded-full" />
-                                            )}
+                                            {/* Shine effect removed */}
                                         </button>
 
                                         {/* Title Label */}
@@ -165,8 +162,8 @@ export const UnitView: React.FC<UnitViewProps> = ({ unitId, onBack, onSelectLess
                     </div>
                 ) : (
                     <div className="text-center mt-20 p-8">
-                        <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <span className="text-4xl">🚧</span>
+                        <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                            <Construction size={40} strokeWidth={2} />
                         </div>
                         <h3 className="text-xl font-black text-slate-700 mb-2">시공 중!</h3>
                         <p className="text-slate-500 font-bold">곧 재미있는 레슨이 추가될 예정이에요.</p>

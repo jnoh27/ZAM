@@ -308,7 +308,7 @@ export const Studio: React.FC<StudioProps> = () => {
       </header>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-hidden relative">
+      <div className="flex-1 overflow-hidden relative pb-10 md:pb-12">
         {wizardStep === 1 && renderRhythmArea()}
         {wizardStep === 2 && renderChordArea()}
         {wizardStep === 3 && renderMelodyArea()}

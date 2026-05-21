@@ -274,11 +274,10 @@ export const PianoRoll: React.FC<PianoRollProps> = ({
   };
 
   return (
-    <div className="flex flex-col relative no-select select-none">
+    <div className="flex flex-col flex-1 relative no-select select-none w-full min-h-[400px] h-full">
 
       {/* Top Bar Indicators (Bar Numbers) */}
       <div className="flex h-8 mb-1 sticky top-0 bg-white z-20 shadow-sm border-b border-slate-100">
-        <div className="w-12 flex-shrink-0 bg-white border-r border-slate-100"></div>
         {Array.from({ length: TOTAL_STEPS }).map((_, i) => {
           const isBarStart = i % STEPS_PER_BAR === 0;
           return (
@@ -298,117 +297,96 @@ export const PianoRoll: React.FC<PianoRollProps> = ({
 
       <div
         ref={containerRef}
-        className="relative rounded-xl select-none cursor-crosshair bg-white"
+        className="relative rounded-xl select-none cursor-crosshair bg-white flex flex-1 overflow-y-auto overflow-x-hidden"
         style={{ touchAction: 'pan-y' }} // Crucial: Allows vertical scrolling on touch
         onPointerDown={handleGridPointerDown}
         onPointerMove={handleGridPointerMove}
         onPointerUp={handleGridPointerUp}
       >
-        {PITCH_ROWS.map((pitch, rowIndex) => {
-          const isSharp = pitch.includes('#');
+        {Array.from({ length: TOTAL_STEPS }).map((_, stepIndex) => {
+          const allowedPitches = PITCH_ROWS.filter(pitch => isNoteAllowed(pitch, stepIndex));
+          const isBarStart = stepIndex % STEPS_PER_BAR === 0;
+          
+          const barIndex = Math.floor(stepIndex / STEPS_PER_BAR);
+          const chord = progression[barIndex];
+          const colorBase = chord ? chord.color.split(' ')[0].replace('bg-', '').replace('-50', '') : 'slate';
+
+          const borderClass = stepIndex === 0 ? '' : (isBarStart ? 'border-l-2 border-slate-300' : 'border-l border-slate-200');
 
           return (
-            <div key={pitch} className="flex h-10 w-full group"> {/* Reduced to h-10 (40px) */}
-              {/* Row Label (Pitch Name) */}
-              <div
-                className={`
-                  w-12 flex-shrink-0 flex items-center justify-end pr-2 text-xs font-bold pointer-events-none select-none bg-white border-r border-slate-50
-                  ${isSharp ? 'text-slate-300' : 'text-slate-500'}
-                `}
-              >
-                {pitch.replace(/\d/, '')}
-              </div>
+            <div key={stepIndex} className={`flex flex-col flex-1 ${borderClass}`}>
+              {allowedPitches.map(pitch => {
+                const rawToken = melody[stepIndex];
+                const resolvedPitch = resolvedMelody[stepIndex];
+                const isActive = resolvedPitch === pitch;
 
-              {/* Grid Cells */}
-              <div className="flex-1 flex relative">
+                const isHead = isActive && rawToken === pitch;
+                const isTail = isActive && rawToken === SUSTAIN_TOKEN;
+                const isPlayingStep = stepIndex === currentStep;
 
-                {Array.from({ length: TOTAL_STEPS }).map((_, stepIndex) => {
-                  const allowed = isNoteAllowed(pitch, stepIndex);
-                  const isBarStart = stepIndex % STEPS_PER_BAR === 0;
+                const bgClass = `bg-${colorBase}-50/30`;
 
-                  const rawToken = melody[stepIndex];
-                  const resolvedPitch = resolvedMelody[stepIndex];
-                  const isActive = resolvedPitch === pitch;
+                let noteClass = 'hidden';
+                let noteRounded = 'rounded-md';
 
-                  const isHead = isActive && rawToken === pitch;
-                  const isTail = isActive && rawToken === SUSTAIN_TOKEN;
-                  const isPlayingStep = stepIndex === currentStep;
+                const isDragTarget = dragState?.pitch === pitch && dragState?.isActive;
 
-                  const barIndex = Math.floor(stepIndex / STEPS_PER_BAR);
-                  const chord = progression[barIndex];
-                  const colorBase = chord.color.split(' ')[0].replace('bg-', '').replace('-50', '');
-
-                  let bgClass = 'bg-slate-50';
-                  if (allowed) {
-                    bgClass = `bg-${colorBase}-50/30`;
+                if (isActive) {
+                  noteClass = `bg-${colorBase}-500 shadow-sm`;
+                  if (isDragTarget) {
+                    noteClass = `bg-${colorBase}-600 shadow-md ring-2 ring-${colorBase}-300 ring-offset-1 z-20`;
                   }
 
-                  const borderClass = isBarStart ? 'border-l-2 border-slate-300' : 'border-l border-slate-100/50';
+                  if (isHead) noteRounded = 'rounded-l-md';
+                  if (isTail) noteRounded = 'rounded-r-md';
 
-                  let noteClass = 'hidden';
-                  let noteRounded = 'rounded-md';
+                  const nextIsSustain = (stepIndex + 1 < TOTAL_STEPS) && melody[stepIndex + 1] === SUSTAIN_TOKEN;
+                  const prevIsSustain = (stepIndex - 1 >= 0) && melody[stepIndex] === SUSTAIN_TOKEN && resolvedMelody[stepIndex - 1] === pitch;
 
-                  const isDragTarget = dragState?.pitch === pitch && dragState?.isActive;
+                  if (nextIsSustain) noteRounded = isHead ? 'rounded-l-lg rounded-r-none' : 'rounded-none';
+                  if (prevIsSustain && !nextIsSustain) noteRounded = 'rounded-r-lg rounded-l-none';
+                  if (prevIsSustain && nextIsSustain) noteRounded = 'rounded-none';
+                }
 
-                  if (isActive) {
-                    noteClass = `bg-${colorBase}-500 shadow-sm`;
-                    if (isDragTarget) {
-                      noteClass = `bg-${colorBase}-600 shadow-md ring-2 ring-${colorBase}-300 ring-offset-1 z-20`;
-                    }
-
-                    if (isHead) noteRounded = 'rounded-l-md';
-                    if (isTail) noteRounded = 'rounded-r-md';
-
-                    const nextIsSustain = (stepIndex + 1 < TOTAL_STEPS) && melody[stepIndex + 1] === SUSTAIN_TOKEN;
-                    const prevIsSustain = (stepIndex - 1 >= 0) && melody[stepIndex] === SUSTAIN_TOKEN && resolvedMelody[stepIndex - 1] === pitch;
-
-                    if (nextIsSustain) noteRounded = isHead ? 'rounded-l-lg rounded-r-none' : 'rounded-none';
-                    if (prevIsSustain && !nextIsSustain) noteRounded = 'rounded-r-lg rounded-l-none';
-                    if (prevIsSustain && nextIsSustain) noteRounded = 'rounded-none';
-                  }
-
-                  const cursorClass = allowed ? 'cursor-pointer' : 'cursor-not-allowed';
-
-                  return (
-                    <div
-                      key={`${pitch}-${stepIndex}`}
-                      data-step={stepIndex}
-                      data-pitch={pitch}
-                      className={`
-                        flex-1 relative ${cursorClass} ${borderClass} ${bgClass}
-                        ${isPlayingStep ? '!brightness-95' : ''}
-                        transition-colors duration-100
-                        border-b border-slate-50/50
-                        ${allowed && !isActive ? 'hover:bg-slate-200/50' : ''}
-                      `}
-                    >
-                      {allowed && !isActive && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                          <div className={`
-                                    w-1.5 h-1.5 rounded-full
-                                    bg-${colorBase}-300
-                                `}></div>
-                        </div>
-                      )}
-
-                      {isActive && (
+                return (
+                  <div
+                    key={`${pitch}-${stepIndex}`}
+                    data-step={stepIndex}
+                    data-pitch={pitch}
+                    className={`
+                      group flex-1 min-h-[48px] relative cursor-pointer ${bgClass}
+                      ${isPlayingStep ? '!brightness-95' : ''}
+                      transition-colors duration-100
+                      border-b border-slate-200
+                      ${!isActive ? 'hover:bg-slate-200/50' : ''}
+                    `}
+                  >
+                    {!isActive && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
                         <div className={`
-                                absolute inset-y-1 inset-x-0 mx-[1px] ${noteClass} ${noteRounded}
-                                animate-pop-in z-10
-                            `}>
-                          {isTail && isDragTarget && (
-                            <div className="absolute right-1 top-1/2 -translate-y-1/2 w-1 h-3 bg-white/30 rounded-full"></div>
-                          )}
-                        </div>
-                      )}
+                                  w-1.5 h-1.5 rounded-full
+                                  bg-${colorBase}-300
+                              `}></div>
+                      </div>
+                    )}
 
-                      {isPlayingStep && !isActive && allowed && (
-                        <div className={`absolute inset-0 bg-slate-900/5`}></div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                    {isActive && (
+                      <div className={`
+                              absolute inset-y-1 inset-x-0 mx-[1px] ${noteClass} ${noteRounded}
+                              animate-pop-in z-10
+                          `}>
+                        {isTail && isDragTarget && (
+                          <div className="absolute right-1 top-1/2 -translate-y-1/2 w-1 h-3 bg-white/30 rounded-full"></div>
+                        )}
+                      </div>
+                    )}
+
+                    {isPlayingStep && !isActive && (
+                      <div className={`absolute inset-0 bg-slate-900/5`}></div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           );
         })}

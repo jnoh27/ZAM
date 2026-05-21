@@ -39,7 +39,7 @@ export const ChordPlayer: React.FC<ChordPlayerProps> = ({ onBack }) => {
         }).toDestination();
 
         const tremolo = new Tone.Tremolo(4, 0.2).toDestination().start();
-        const reverb = new Tone.Reverb(1.5).toDestination();
+        const reverb = new Tone.JCReverb(0.5).toDestination();
         synth.connect(tremolo);
         synth.connect(reverb);
 

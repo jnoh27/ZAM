@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as Tone from 'tone';
-import { ArrowLeft, Check, Volume2, ArrowRight, Star, Heart, Cloud, Sun, Music, Circle, Triangle, Square, ChevronUp, ChevronDown, Repeat, Play, Pause } from 'lucide-react';
+import { Lightbulb, ArrowUp, ArrowDown, Mic, AlertCircle, Ear, Bird, Turtle, Cat, Dog, Fish, User, Play, Pause, Music, ArrowLeft, Check, Volume2, ArrowRight, Star, Heart, Cloud, Sun, Circle, Triangle, Square, ChevronUp, ChevronDown, Repeat } from 'lucide-react';
 
 interface LessonPlayerProps {
     lessonId: string;
@@ -387,80 +387,55 @@ const RhythmBeatGame: React.FC<{ step: LessonStep, onComplete: () => void }> = (
     const selectedPattern = PATTERNS[selectedPatternIndex];
 
     return (
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-24 w-full max-w-[1400px] mx-auto min-h-[700px] px-12 py-12 animate-fade-in">
-            {/* Left Side: Controls & Metronome */}
-            <div className="flex flex-col items-center justify-between w-[450px] h-[600px] shrink-0 relative pt-4">
-
+        <div className="flex flex-col items-center gap-6 w-full max-w-[900px] mx-auto px-4 animate-fade-in text-center pb-12">
+            <h2 className="text-3xl font-black text-slate-800 animate-slide-up mt-8">{step.title}</h2>
+            <p className="text-lg text-slate-500 font-medium animate-slide-up delay-100 mb-8">{step.description}</p>
+            
+            {/* Top Bar: Play button and BPM Controller */}
+            <div className="flex flex-wrap items-center gap-6 animate-slide-up delay-200 bg-white p-4 rounded-3xl border-2 border-slate-100 shadow-sm w-full max-w-2xl justify-center">
                 {/* Play Button */}
                 <button
                     onClick={togglePlay}
-                    className="group relative z-30 mt-4 active:translate-y-[6px] transition-all flex flex-col items-center"
+                    className={`
+                        w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-lg border-4 transition-all duration-300 active:translate-y-1 active:border-b-4
+                        ${isPlaying ? 'bg-rose-50 border-rose-300 text-rose-500' : 'bg-[#58CC02] border-[#46A302] text-white hover:brightness-110'}
+                    `}
                 >
-                    <div className={`w-36 h-36 rounded-[2rem] flex items-center justify-center text-7xl shadow-lg border-x-4 border-t-4 border-b-[16px] transition-all duration-300 ${isPlaying ? 'bg-rose-50 border-rose-300 text-rose-500 hover:bg-rose-100' : 'bg-blue-50 border-blue-300 text-blue-500 hover:bg-blue-100'
-                        } group-active:border-b-4`}>
-                        {isPlaying ? '⏸' : '▶'}
-                    </div>
+                    <span className={isPlaying ? "" : "ml-1"}>{isPlaying ? '⏸' : '▶'}</span>
                 </button>
-
-                {/* Big Circle BPM Controller */}
-                <div className="relative flex flex-col items-center justify-center w-[300px] h-[300px] my-auto">
-                    {/* Visual Pulse Layer */}
-                    <div className={`absolute inset-0 border-[16px] border-blue-400/20 rounded-full scale-[1.3] transition-all duration-500 -z-10 ${isPlaying ? 'opacity-100 animate-ping-slow' : 'opacity-0 scale-100'}`} />
-
-                    {/* Main UI Circle */}
-                    <div className="absolute inset-0 rounded-full border-[6px] border-slate-200 bg-white shadow-2xl flex flex-col items-center justify-between z-20 py-8">
-                        {/* Adjust Up */}
-                        <button onClick={() => adjustBpm(10)} className="w-32 h-16 flex items-center justify-center text-slate-300 hover:text-slate-600 active:scale-90 transition-all">
-                            <span className="w-0 h-0 border-l-[20px] border-r-[20px] border-b-[25px] border-l-transparent border-r-transparent border-b-current block" />
-                        </button>
-
-                        <div className="flex flex-col items-center justify-center -mt-2">
-                            <span className="text-slate-400 font-bold tracking-widest text-sm uppercase -mb-3">Tempo</span>
-                            <span className="text-[100px] font-black text-slate-800 tabular-nums leading-none tracking-tighter">{bpm}</span>
-                        </div>
-
-                        {/* Adjust Down */}
-                        <button onClick={() => adjustBpm(-10)} className="w-32 h-16 flex items-center justify-center text-slate-300 hover:text-slate-600 active:scale-90 transition-all">
-                            <span className="w-0 h-0 border-l-[20px] border-r-[20px] border-t-[25px] border-l-transparent border-r-transparent border-t-current block" />
-                        </button>
+                
+                {/* BPM Tiny Controller */}
+                <div className="flex items-center bg-slate-100 rounded-full px-6 py-2 shadow-inner border-2 border-slate-200 h-16">
+                    <button onClick={() => adjustBpm(-10)} className="text-slate-400 hover:text-slate-700 p-2 active:scale-90 transition-transform">
+                        <span className="w-0 h-0 border-t-[8px] border-b-[8px] border-r-[12px] border-t-transparent border-b-transparent border-r-current block" />
+                    </button>
+                    <div className="w-32 text-center flex flex-col justify-center">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Tempo</span>
+                        <span className="text-2xl font-black text-slate-800 tabular-nums leading-none">{bpm}</span>
                     </div>
+                    <button onClick={() => adjustBpm(10)} className="text-slate-400 hover:text-slate-700 p-2 active:scale-90 transition-transform">
+                        <span className="w-0 h-0 border-t-[8px] border-b-[8px] border-l-[12px] border-t-transparent border-b-transparent border-l-current block" />
+                    </button>
                 </div>
-
-                {/* 4 Lights at the bottom */}
-                <div className="flex gap-8 items-center justify-center w-full mt-4 h-20">
-                    {[...Array(4)].map((_, i) => {
-                        const activeBeatIndex = Math.floor(currentBeat / 4);
-                        const isLightOn = currentBeat !== -1 && activeBeatIndex === i;
-
-                        return (
-                            <div
-                                key={i}
-                                className={`
-                                    w-10 h-10 rounded-full border-4 transition-all duration-100 ease-in-out
-                                    ${isLightOn
-                                        ? 'bg-blue-500 border-blue-400 shadow-[0_0_25px_8px_rgba(59,130,246,0.6)] scale-[1.15]'
-                                        : 'bg-slate-100 border-slate-300 shadow-inner scale-100'
-                                    }
-                                `}
-                            />
-                        );
-                    })}
+                
+                {/* Visual Beat Indicator */}
+                <div className="flex gap-3 items-center bg-slate-50 rounded-full px-6 h-16 border-2 border-slate-100">
+                    {[0, 1, 2, 3].map(i => (
+                        <div
+                            key={i}
+                            className={`w-4 h-4 rounded-full transition-all duration-75 ${
+                                currentBeat !== -1 && Math.floor(currentBeat / 4) === i 
+                                    ? 'bg-blue-500 scale-125 shadow-[0_0_10px_rgba(59,130,246,0.5)]' 
+                                    : 'bg-slate-200'
+                            }`}
+                        />
+                    ))}
                 </div>
             </div>
 
-            {/* Right Side: Rhythm 2x4 Pattern Grid */}
-            <div className="flex flex-col flex-1 h-[750px] relative">
-                <div className="flex justify-between items-center mb-10 pl-4 w-full border-b-4 border-slate-100 pb-4 h-[80px]">
-                    <h3 className="font-black text-4xl text-slate-800 tracking-tight">
-                        Rhythm Button
-                    </h3>
-                    <button onClick={onComplete} className="px-10 py-5 bg-[#58CC02] text-white rounded-2xl font-black text-2xl shadow-[0_8px_0_rgba(74,171,2,1)] hover:brightness-110 active:translate-y-[8px] active:shadow-none transition-all mr-2">
-                        다음 레슨
-                    </button>
-                </div>
-
-                {/* 2x4 Grid */}
-                <div className="flex-1 grid grid-cols-2 grid-rows-4 gap-6 z-20 h-full relative pl-4 mb-4">
+            {/* Rhythm Pattern Selection */}
+            <div className="w-full max-w-3xl animate-slide-up delay-300 mt-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     {PATTERNS.map((pattern, idx) => {
                         const isSelected = selectedPatternIndex === idx;
                         return (
@@ -471,37 +446,33 @@ const RhythmBeatGame: React.FC<{ step: LessonStep, onComplete: () => void }> = (
                                     if (!isPlaying) togglePlay();
                                 }}
                                 className={`
-                                    flex flex-col justify-center px-8 rounded-3xl border-x-4 border-t-4 transition-all w-full h-full text-left active:translate-y-2 active:border-b-4
+                                    py-5 px-4 rounded-2xl border-x-4 border-t-4 transition-all text-center active:translate-y-1 active:border-b-4
                                     ${isSelected
-                                        ? 'bg-blue-50 border-b-[8px] border-blue-300 text-blue-700 z-10 -translate-y-2'
-                                        : 'bg-white border-b-[8px] border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                                        ? 'bg-blue-50 border-b-[6px] border-blue-400 shadow-md text-blue-700 font-black -translate-y-1'
+                                        : 'bg-white border-b-[6px] border-slate-200 text-slate-600 font-bold hover:border-slate-300 hover:bg-slate-50'
                                     }
                                 `}
                             >
-                                <span className={`font-black text-3xl truncate`}>{pattern.name}</span>
+                                <span className="text-lg">{pattern.name}</span>
                             </button>
                         );
                     })}
                 </div>
 
-                {/* Description Space - Pushed down manually */}
-                <div className={`
-                    ml-4 py-8 px-10 bg-slate-900 rounded-[2rem] shadow-2xl flex items-center gap-8 text-white h-[140px] transition-all duration-500
-                    ${isPlaying ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'}
-                `}>
-                    <div className="w-20 h-20 rounded-2xl bg-blue-500/20 flex items-center justify-center shrink-0 border-2 border-blue-500/50 text-5xl">
-                        💡
-                    </div>
-                    <div className="flex flex-col justify-center gap-2">
-                        <span className="text-blue-400 font-black uppercase tracking-widest text-sm bg-blue-500/10 px-3 py-1 rounded-full w-fit mb-1">
-                            현재 패턴 특징
-                        </span>
-                        <p className="text-2xl font-bold text-slate-100 leading-snug">
-                            {selectedPattern.desc}
-                        </p>
+                {/* Info Box */}
+                <div className="bg-slate-100 rounded-3xl p-6 text-center border-2 border-slate-200 shadow-inner flex items-center justify-center gap-6 mx-auto w-full max-w-2xl">
+                    <Lightbulb size={36} strokeWidth={2} className="text-blue-500 shrink-0" />
+                    <div className="flex flex-col items-start text-left">
+                        <span className="font-bold text-slate-700 text-lg leading-snug">{selectedPattern.desc}</span>
                     </div>
                 </div>
+            </div>
 
+            {/* Next Button */}
+            <div className="animate-slide-up delay-400 mt-8">
+                <button onClick={onComplete} className="px-12 py-4 bg-[#58CC02] text-white rounded-2xl font-black text-xl shadow-[0_6px_0_rgba(74,171,2,1)] hover:brightness-110 active:translate-y-[6px] active:shadow-none transition-all">
+                    다음 레슨
+                </button>
             </div>
         </div>
     );
@@ -636,54 +607,50 @@ const RhythmMachineGame: React.FC<{ step: LessonStep, onComplete: () => void }> 
     );
 
     return (
-        <div className="flex flex-col items-center w-full max-w-[1200px] mx-auto min-h-[700px] px-8 py-8 animate-fade-in relative z-10">
-            {/* Top Bar: BPM Controller & Play */}
-            <div className="flex items-center justify-between w-full mb-8">
-                {/* BPM Tiny Controller */}
-                <div className="flex items-center bg-slate-100 rounded-full px-4 py-2 shadow-inner border-2 border-slate-200">
-                    <button onClick={() => adjustBpm(-10)} className="text-slate-400 hover:text-slate-700 p-2 active:scale-90">
-                        <span className="w-0 h-0 border-t-[8px] border-b-[8px] border-r-[12px] border-t-transparent border-b-transparent border-r-current block" />
-                    </button>
-                    <div className="w-24 text-center">
-                        <span className="text-xs text-slate-400 font-bold block -mb-1">BPM</span>
-                        <span className="text-2xl font-black text-slate-800 tabular-nums">{bpm}</span>
-                    </div>
-                    <button onClick={() => adjustBpm(10)} className="text-slate-400 hover:text-slate-700 p-2 active:scale-90">
-                        <span className="w-0 h-0 border-t-[8px] border-b-[8px] border-l-[12px] border-t-transparent border-b-transparent border-l-current block" />
-                    </button>
-                </div>
-
-                {/* Central Play Button */}
+        <div className="flex flex-col items-center gap-6 w-full max-w-[1000px] mx-auto px-4 animate-fade-in text-center pb-12">
+            <h2 className="text-3xl font-black text-slate-800 animate-slide-up mt-8">{step.title}</h2>
+            <p className="text-lg text-slate-500 font-medium animate-slide-up delay-100 mb-8">{step.description}</p>
+            
+            {/* Top Bar: Play button and BPM Controller */}
+            <div className="flex flex-wrap items-center gap-6 animate-slide-up delay-200 bg-white p-4 rounded-3xl border-2 border-slate-100 shadow-sm w-full max-w-2xl justify-center">
+                {/* Play Button */}
                 <button
                     onClick={togglePlay}
                     className={`
-                        w-24 h-24 rounded-full flex items-center justify-center text-4xl shadow-xl border-x-4 border-t-4 border-b-[8px] transition-all duration-300 active:border-b-4 active:translate-y-1
+                        w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-lg border-4 transition-all duration-300 active:translate-y-1 active:border-b-4
                         ${isPlaying ? 'bg-rose-50 border-rose-300 text-rose-500' : 'bg-[#58CC02] border-[#46A302] text-white hover:brightness-110'}
                     `}
                 >
-                    <span className="ml-1">{isPlaying ? '⏸' : '▶'}</span>
+                    <span className={isPlaying ? "" : "ml-1"}>{isPlaying ? '⏸' : '▶'}</span>
                 </button>
-
-                {/* Complete Button */}
-                <button onClick={onComplete} className="px-8 py-4 bg-[#58CC02] text-white rounded-2xl font-black text-lg shadow-[0_6px_0_rgba(74,171,2,1)] hover:brightness-110 active:translate-y-[6px] active:shadow-none transition-all">
-                    다음 레슨
-                </button>
+                
+                {/* BPM Tiny Controller */}
+                <div className="flex items-center bg-slate-100 rounded-full px-6 py-2 shadow-inner border-2 border-slate-200 h-16">
+                    <button onClick={() => adjustBpm(-10)} className="text-slate-400 hover:text-slate-700 p-2 active:scale-90 transition-transform">
+                        <span className="w-0 h-0 border-t-[8px] border-b-[8px] border-r-[12px] border-t-transparent border-b-transparent border-r-current block" />
+                    </button>
+                    <div className="w-32 text-center flex flex-col justify-center">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Tempo</span>
+                        <span className="text-2xl font-black text-slate-800 tabular-nums leading-none">{bpm}</span>
+                    </div>
+                    <button onClick={() => adjustBpm(10)} className="text-slate-400 hover:text-slate-700 p-2 active:scale-90 transition-transform">
+                        <span className="w-0 h-0 border-t-[8px] border-b-[8px] border-l-[12px] border-t-transparent border-b-transparent border-l-current block" />
+                    </button>
+                </div>
             </div>
 
             {/* 3x16 Sequencer Grid */}
-            <div className="w-full bg-[#F8F9FA] p-6 rounded-3xl shadow-inner border-2 border-slate-100 mb-12 flex flex-col gap-4">
-                {renderGridRow('하이햇', selectedPattern.hihat, <Triangle size={32} fill="currentColor" strokeWidth={0} />, '#34A853')}
-                {renderGridRow('스네어', selectedPattern.snare, <Square size={28} fill="currentColor" strokeWidth={0} />, '#FBBC04')}
-                {renderGridRow('킥', selectedPattern.kick, <Circle size={32} fill="currentColor" strokeWidth={0} />, '#EA4335')}
+            <div className="w-full bg-slate-50 p-6 rounded-3xl shadow-inner border-2 border-slate-200 mb-4 flex flex-col gap-4 animate-slide-up delay-300 overflow-x-auto overflow-y-hidden">
+                <div className="min-w-[700px] flex flex-col gap-4">
+                    {renderGridRow('하이햇', selectedPattern.hihat, <Triangle size={32} fill="currentColor" strokeWidth={0} />, '#34A853')}
+                    {renderGridRow('스네어', selectedPattern.snare, <Square size={28} fill="currentColor" strokeWidth={0} />, '#FBBC04')}
+                    {renderGridRow('킥', selectedPattern.kick, <Circle size={32} fill="currentColor" strokeWidth={0} />, '#EA4335')}
+                </div>
             </div>
 
             {/* Bottom: Pattern Selector */}
-            <div className="w-full">
-                <div className="flex items-center gap-4 mb-4">
-                    <h3 className="font-black text-2xl text-slate-800">리듬 선택</h3>
-                    <div className="flex-1 h-1 bg-slate-100 rounded-full" />
-                </div>
-                <div className="grid grid-cols-4 gap-4 mb-4">
+            <div className="w-full max-w-4xl animate-slide-up delay-400 mt-2">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     {MULTI_PATTERNS.map((pattern, idx) => {
                         const isSelected = selectedPatternIndex === idx;
                         return (
@@ -707,11 +674,20 @@ const RhythmMachineGame: React.FC<{ step: LessonStep, onComplete: () => void }> 
                     })}
                 </div>
 
-                {/* Selected Pattern Description */}
-                <div className="bg-slate-100 rounded-xl p-4 text-center max-w-2xl mx-auto border-2 border-slate-200">
-                    <span className="font-bold text-slate-500 mr-2">💡 특징:</span>
-                    <span className="font-medium text-slate-700">{selectedPattern.desc}</span>
+                {/* Info Box */}
+                <div className="bg-slate-100 rounded-3xl p-6 text-center border-2 border-slate-200 shadow-inner flex items-center justify-center gap-6 mx-auto w-full max-w-2xl">
+                    <Lightbulb size={36} strokeWidth={2} className="text-blue-500 shrink-0" />
+                    <div className="flex flex-col items-start text-left">
+                        <span className="font-bold text-slate-700 text-lg leading-snug">{selectedPattern.desc}</span>
+                    </div>
                 </div>
+            </div>
+
+            {/* Next Button */}
+            <div className="animate-slide-up delay-500 mt-8">
+                <button onClick={onComplete} className="px-12 py-4 bg-[#58CC02] text-white rounded-2xl font-black text-xl shadow-[0_6px_0_rgba(74,171,2,1)] hover:brightness-110 active:translate-y-[6px] active:shadow-none transition-all">
+                    다음 레슨
+                </button>
             </div>
         </div>
     );
@@ -846,45 +822,57 @@ const RhythmMasterGame: React.FC<{ step: LessonStep, onComplete: () => void }> =
     );
 
     return (
-        <div className="flex flex-col items-center w-full max-w-[1200px] mx-auto min-h-[700px] px-8 py-8 animate-fade-in relative z-10">
-            {/* Top Bar: BPM Controller & Play */}
-            <div className="flex items-center justify-between w-full mb-8">
-                <div className="flex items-center bg-slate-100 rounded-full px-4 py-2 shadow-inner border-2 border-slate-200">
-                    <button onClick={() => adjustBpm(-10)} className="text-slate-400 hover:text-slate-700 p-2 active:scale-90">
-                        <span className="w-0 h-0 border-t-[8px] border-b-[8px] border-r-[12px] border-t-transparent border-b-transparent border-r-current block" />
-                    </button>
-                    <div className="w-24 text-center">
-                        <span className="text-xs text-slate-400 font-bold block -mb-1">BPM</span>
-                        <span className="text-2xl font-black text-slate-800 tabular-nums">{bpm}</span>
-                    </div>
-                    <button onClick={() => adjustBpm(10)} className="text-slate-400 hover:text-slate-700 p-2 active:scale-90">
-                        <span className="w-0 h-0 border-t-[8px] border-b-[8px] border-l-[12px] border-t-transparent border-b-transparent border-l-current block" />
-                    </button>
-                </div>
-
+        <div className="flex flex-col items-center gap-6 w-full max-w-[1000px] mx-auto px-4 animate-fade-in text-center pb-12">
+            <h2 className="text-3xl font-black text-slate-800 animate-slide-up mt-8">{step.title}</h2>
+            <p className="text-lg text-slate-500 font-medium animate-slide-up delay-100 mb-8">{step.description}</p>
+            
+            {/* Top Bar: Play button and BPM Controller */}
+            <div className="flex flex-wrap items-center gap-6 animate-slide-up delay-200 bg-white p-4 rounded-3xl border-2 border-slate-100 shadow-sm w-full max-w-2xl justify-center">
+                {/* Play Button */}
                 <button
                     onClick={togglePlay}
                     className={`
-                        w-24 h-24 rounded-full flex items-center justify-center text-4xl shadow-xl border-x-4 border-t-4 border-b-[8px] transition-all duration-300 active:border-b-4 active:translate-y-1
+                        w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-lg border-4 transition-all duration-300 active:translate-y-1 active:border-b-4
                         ${isPlaying ? 'bg-rose-50 border-rose-300 text-rose-500' : 'bg-[#58CC02] border-[#46A302] text-white hover:brightness-110'}
                     `}
                 >
-                    <span className="ml-1">{isPlaying ? '⏸' : '▶'}</span>
+                    <span className={isPlaying ? "" : "ml-1"}>{isPlaying ? '⏸' : '▶'}</span>
                 </button>
-
-                <button onClick={onComplete} className="px-8 py-4 bg-[#58CC02] text-white rounded-2xl font-black text-lg shadow-[0_6px_0_rgba(74,171,2,1)] hover:brightness-110 active:translate-y-[6px] active:shadow-none transition-all">
-                    레슨 완료
-                </button>
+                
+                {/* BPM Tiny Controller */}
+                <div className="flex items-center bg-slate-100 rounded-full px-6 py-2 shadow-inner border-2 border-slate-200 h-16">
+                    <button onClick={() => adjustBpm(-10)} className="text-slate-400 hover:text-slate-700 p-2 active:scale-90 transition-transform">
+                        <span className="w-0 h-0 border-t-[8px] border-b-[8px] border-r-[12px] border-t-transparent border-b-transparent border-r-current block" />
+                    </button>
+                    <div className="w-32 text-center flex flex-col justify-center">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Tempo</span>
+                        <span className="text-2xl font-black text-slate-800 tabular-nums leading-none">{bpm}</span>
+                    </div>
+                    <button onClick={() => adjustBpm(10)} className="text-slate-400 hover:text-slate-700 p-2 active:scale-90 transition-transform">
+                        <span className="w-0 h-0 border-t-[8px] border-b-[8px] border-l-[12px] border-t-transparent border-b-transparent border-l-current block" />
+                    </button>
+                </div>
             </div>
 
             {/* 3x16 Sequencer Grid Editable */}
-            <div className="w-full bg-[#F8F9FA] p-6 rounded-3xl shadow-inner border-2 border-slate-100 flex flex-col gap-4">
-                {renderGridRow(0, <Triangle size={32} fill="currentColor" strokeWidth={0} />, '#34A853')}
-                {renderGridRow(1, <Square size={28} fill="currentColor" strokeWidth={0} />, '#FBBC04')}
-                {renderGridRow(2, <Circle size={32} fill="currentColor" strokeWidth={0} />, '#EA4335')}
+            <div className="w-full bg-slate-50 p-6 rounded-3xl shadow-inner border-2 border-slate-200 mb-4 flex flex-col gap-4 animate-slide-up delay-300 overflow-x-auto overflow-y-hidden">
+                <div className="min-w-[700px] flex flex-col gap-4">
+                    {renderGridRow(0, <Triangle size={32} fill="currentColor" strokeWidth={0} />, '#34A853')}
+                    {renderGridRow(1, <Square size={28} fill="currentColor" strokeWidth={0} />, '#FBBC04')}
+                    {renderGridRow(2, <Circle size={32} fill="currentColor" strokeWidth={0} />, '#EA4335')}
+                </div>
             </div>
 
-            <p className="mt-8 text-slate-500 font-bold text-center">빈칸을 클릭해서 소리를 넣거나 빼보세요!</p>
+            <p className="mt-2 mb-4 text-slate-500 font-bold flex items-center justify-center gap-2 animate-slide-up delay-400">
+                <Lightbulb size={20} className="text-yellow-500" /> 빈칸을 클릭해서 소리를 넣거나 빼보세요!
+            </p>
+
+            {/* Next Button */}
+            <div className="animate-slide-up delay-500 mt-4">
+                <button onClick={onComplete} className="px-12 py-4 bg-[#58CC02] text-white rounded-2xl font-black text-xl shadow-[0_6px_0_rgba(74,171,2,1)] hover:brightness-110 active:translate-y-[6px] active:shadow-none transition-all">
+                    레슨 완료
+                </button>
+            </div>
         </div>
     );
 };
@@ -976,6 +964,7 @@ const PitchPatternGame: React.FC<{ step: LessonStep, onComplete: () => void }> =
         playPattern();
 
         return () => {
+            micRef.current?.close();
             micRef.current?.dispose();
             analyserRef.current?.dispose();
             synthRef.current?.dispose();
@@ -1145,6 +1134,7 @@ const PitchMemoryGame: React.FC<{ step: LessonStep, onComplete: () => void }> = 
         startSequence();
 
         return () => {
+            micRef.current?.close();
             micRef.current?.dispose();
             analyserRef.current?.dispose();
             refOscRef.current?.dispose();
@@ -1281,7 +1271,7 @@ const PitchMemoryGame: React.FC<{ step: LessonStep, onComplete: () => void }> = 
 const PitchMatchingGame: React.FC<{ step: LessonStep, onComplete: () => void }> = ({ step, onComplete }) => {
     const [userFreq, setUserFreq] = useState<number | null>(null);
     const [isMatched, setIsMatched] = useState(false);
-    const [guidance, setGuidance] = useState("마이크를 켜고 노래를 불러보세요!");
+    const [guidance, setGuidance] = useState<React.ReactNode>("마이크를 켜고 노래를 불러보세요!");
     const [isMicOn, setIsMicOn] = useState(false);
     const [isPlayingRef, setIsPlayingRef] = useState(false);
 
@@ -1310,6 +1300,7 @@ const PitchMatchingGame: React.FC<{ step: LessonStep, onComplete: () => void }> 
         refOscRef.current = new Tone.Oscillator(targetFreq, "sine").toDestination();
 
         return () => {
+            micRef.current?.close();
             micRef.current?.dispose();
             analyserRef.current?.dispose();
             refOscRef.current?.dispose();
@@ -1374,7 +1365,10 @@ const PitchMatchingGame: React.FC<{ step: LessonStep, onComplete: () => void }> 
                 }
             } else {
                 setIsMatched(false);
-                setGuidance(pitch < targetFreq ? "조금 더 높게 불러보세요! ⬆️" : "조금 더 낮게 불러보세요! ⬇️");
+                setGuidance(pitch < targetFreq 
+                    ? <span className="flex items-center gap-2">조금 더 높게 불러보세요! <ArrowUp className="text-blue-500" size={20} /></span> 
+                    : <span className="flex items-center gap-2">조금 더 낮게 불러보세요! <ArrowDown className="text-red-500" size={20} /></span>
+                );
             }
         }
         requestRef.current = requestAnimationFrame(updatePitch);
@@ -1446,7 +1440,7 @@ const PitchMatchingGame: React.FC<{ step: LessonStep, onComplete: () => void }> 
                         onClick={startMic}
                         className="bg-[#58CC02] text-white px-8 py-4 rounded-2xl font-black text-lg shadow-[0_6px_0_rgba(74,171,2,1)] hover:brightness-110 active:translate-y-[6px] active:shadow-none transition-all flex items-center gap-2"
                     >
-                        🎙️ 마이크 켜기
+                        <Mic size={20} /> 마이크 켜기
                     </button>
                 )}
             </div>
@@ -1561,7 +1555,7 @@ const PitchQuizGame: React.FC<{ step: LessonStep, onComplete: () => void }> = ({
                 {/* Feedback Prompt */}
                 {feedback === 'error' && (
                     <div className="animate-bounce text-rose-500 font-bold text-xl flex items-center gap-2 mt-4">
-                        <span>😮 틀렸어요! 다시 들어볼까요?</span>
+                        <span className="flex items-center gap-2"><AlertCircle size={24} /> 틀렸어요! 다시 들어볼까요?</span>
                     </div>
                 )}
             </div>
@@ -1802,7 +1796,7 @@ const PitchComparisonGame: React.FC<{ step: LessonStep, onComplete: () => void }
             {/* Hint message */}
             <div className="flex items-center justify-center w-full animate-slide-up delay-300 mt-8 mb-4">
                 <div className="bg-white px-8 py-4 rounded-2xl shadow-sm border-2 border-slate-100 text-slate-500 font-bold flex gap-3 items-center">
-                    <span className="text-2xl">👂</span>
+                    <span className="text-blue-500"><Ear size={32} /></span>
                     두 소리가 똑같아지면 화면이 반짝거려요!
                 </div>
             </div>
@@ -2245,11 +2239,11 @@ const PitchGame: React.FC<{ step: LessonStep, onComplete: () => void, synth: any
                 <h2 className="text-3xl font-black text-slate-800 animate-slide-up mt-8">{step.title}</h2>
                 <div className="flex gap-6 animate-slide-up delay-100 mt-8">
                     <button onClick={playHigh} className="w-40 h-48 bg-sky-50 rounded-[2rem] border-b-[12px] border-x-4 border-t-4 border-sky-200 flex flex-col items-center justify-center gap-4 hover:bg-sky-100 active:translate-y-2 active:border-b-4 transition-all group">
-                        <span className="text-6xl group-hover:animate-bounce">🐦</span>
+                        <span className="group-hover:animate-bounce text-sky-500"><Bird size={64} strokeWidth={2} /></span>
                         <span className="font-black text-sky-700 text-lg">높은 소리</span>
                     </button>
                     <button onClick={playLow} className="w-40 h-48 bg-indigo-50 rounded-[2rem] border-b-[12px] border-x-4 border-t-4 border-indigo-200 flex flex-col items-center justify-center gap-4 hover:bg-indigo-100 active:translate-y-2 active:border-b-4 transition-all group">
-                        <span className="text-6xl group-hover:animate-bounce">🐘</span>
+                        <span className="group-hover:animate-bounce text-indigo-500"><Turtle size={64} strokeWidth={2} /></span>
                         <span className="font-black text-indigo-700 text-lg">낮은 소리</span>
                     </button>
                 </div>
@@ -2276,13 +2270,13 @@ const PitchGame: React.FC<{ step: LessonStep, onComplete: () => void, synth: any
                     onClick={() => { playHigh(); if (step.target === 'high') onComplete(); }}
                     className="w-40 h-40 bg-white border-b-[12px] border-x-4 border-t-4 border-sky-100 rounded-[2rem] hover:border-sky-300 active:translate-y-2 active:border-b-4 transition-all flex items-center justify-center text-7xl group"
                 >
-                    <span className="group-active:scale-90 transition-transform">🐦</span>
+                    <span className="group-active:scale-90 transition-transform text-sky-500"><Bird size={80} strokeWidth={2} /></span>
                 </button>
                 <button
                     onClick={() => { playLow(); if (step.target === 'low') onComplete(); }}
                     className="w-40 h-40 bg-white border-b-[12px] border-x-4 border-t-4 border-indigo-100 rounded-[2rem] hover:border-indigo-300 active:translate-y-2 active:border-b-4 transition-all flex items-center justify-center text-7xl group"
                 >
-                    <span className="group-active:scale-90 transition-transform">🐘</span>
+                    <span className="group-active:scale-90 transition-transform text-indigo-500"><Turtle size={80} strokeWidth={2} /></span>
                 </button>
             </div>
         </div>

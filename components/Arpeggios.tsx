@@ -66,7 +66,7 @@ export const Arpeggios: React.FC<ArpeggiosProps> = ({ onBack }) => {
         Tone.Transport.cancel();
         Tone.Transport.seconds = 0;
 
-        const reverb = new Tone.Reverb({ decay: 2, wet: 0.3 }).toDestination();
+        const reverb = new Tone.JCReverb({ roomSize: 0.5, wet: 0.3 }).toDestination();
 
         const synth = new Tone.Sampler({
             urls: {
