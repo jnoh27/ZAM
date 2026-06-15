@@ -16,6 +16,7 @@ import { HelpModal } from './components/HelpModal';
 import { UnitView } from './components/UnitView';
 import { Studio } from './components/Studio';
 import { Music, Mic2, Piano, PenTool, Smile, Speaker, GitGraph, GraduationCap, LayoutGrid, Activity, Mic, Layers, Waves, RotateCw } from 'lucide-react';
+import { useTranslation } from './contexts/LanguageContext';
 import zamPlayground from './src/assets/zam_playground.png';
 import zamLearning from './src/assets/zam_learning.png';
 
@@ -29,6 +30,7 @@ const App: React.FC = () => {
     const [activeUnit, setActiveUnit] = useState<number | null>(null);
     const [completedLessons, setCompletedLessons] = useState<string[]>([]);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
+    const { language, toggleLanguage, t } = useTranslation();
 
     const handleLessonComplete = () => {
         if (activeLesson) {
@@ -100,23 +102,31 @@ const App: React.FC = () => {
                             onClick={() => setActiveTab('playground')}
                             className={`px-4 py-5 text-[15px] font-bold border-b-[3px] transition-colors ${activeTab === 'playground' ? 'border-[#9D71E8] text-[#9D71E8]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                         >
-                            놀이터
+                            {t('놀이터')}
                         </button>
                         <button
                             onClick={() => setActiveTab('learning')}
                             className={`px-4 py-5 text-[15px] font-bold border-b-[3px] transition-colors ${activeTab === 'learning' ? 'border-[#9D71E8] text-[#9D71E8]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                         >
-                            학교
+                            {t('학교')}
                         </button>
                         <button
                             onClick={() => setActiveTab('studio')}
                             className={`px-4 py-5 text-[15px] font-bold border-b-[3px] transition-colors ${activeTab === 'studio' ? 'border-[#9D71E8] text-[#9D71E8]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                         >
-                            스튜디오
+                            {t('스튜디오')}
                         </button>
                     </div>
                     
                     <div className="absolute right-8 flex items-center gap-4">
+                        <button
+                            data-no-translate
+                            onClick={toggleLanguage}
+                            aria-label={language === 'ko' ? 'Switch to English' : '한국어로 전환'}
+                            className="px-3 h-8 rounded-full bg-slate-100 text-slate-600 text-xs font-black tracking-wide hover:bg-slate-200 transition-colors shadow-sm"
+                        >
+                            {language === 'ko' ? 'EN' : '한국어'}
+                        </button>
                         <button
                             onClick={() => setIsHelpOpen(true)}
                             className="w-8 h-8 rounded-full bg-[#EADDFF] flex items-center justify-center text-[#9D71E8] font-bold cursor-pointer hover:bg-[#D1C4E9] transition-colors shadow-sm"
@@ -136,96 +146,96 @@ const App: React.FC = () => {
                         <header className="flex flex-row items-end justify-center gap-8 mt-12 mb-12">
                             <img src={zamPlayground} alt="ZAM Mascot" className="w-40 h-auto object-contain drop-shadow-sm -mb-4" />
                             <div className="flex flex-col items-center text-center pb-4">
-                                <h1 className="text-4xl font-extrabold text-[#111111] tracking-tight mb-3">실험실</h1>
-                                <p className="text-[#333333] font-medium text-[17px]">가볍게 즐기며 음악을 탐구하고 만들어 보세요.</p>
+                                <h1 className="text-4xl font-extrabold text-[#111111] tracking-tight mb-3">{t('실험실')}</h1>
+                                <p className="text-[#333333] font-medium text-[17px]">{t('가볍게 즐기며 음악을 탐구하고 만들어 보세요.')}</p>
                             </div>
                         </header>
 
                         {/* Playground Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-16">
                             <DashboardButton
-                                title="멜로디 메이커"
-                                subtitle="멜로디와 화음 작곡"
+                                title={t('멜로디 메이커')}
+                                subtitle={t('멜로디와 화음 작곡')}
                                 circleColor="#AECBFA"
                                 iconColor="#1967D2"
                                 icon={<Piano size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('tool-melody')}
                             />
                             <DashboardButton
-                                title="리듬 메이커"
-                                subtitle="드럼 비트 제작"
+                                title={t('리듬 메이커')}
+                                subtitle={t('드럼 비트 제작')}
                                 circleColor="#F4B4C8"
                                 iconColor="#D81B60"
                                 icon={<Mic2 size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('tool-beat')}
                             />
                             <DashboardButton
-                                title="코드 메이커"
-                                subtitle="화음 조합 학습"
+                                title={t('코드 메이커')}
+                                subtitle={t('화음 조합 학습')}
                                 circleColor="#FDE293"
                                 iconColor="#E27200"
                                 icon={<Smile size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('tool-chord')}
                             />
                             <DashboardButton
-                                title="칸딘스키"
-                                subtitle="그림으로 연주하기"
+                                title={t('칸딘스키')}
+                                subtitle={t('그림으로 연주하기')}
                                 circleColor="#A8E6CF"
                                 iconColor="#0F9D58"
                                 icon={<PenTool size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('game-kandinsky')}
                             />
                             <DashboardButton
-                                title="화음 연주"
-                                subtitle="즐거운 화음 실험"
+                                title={t('화음 연주')}
+                                subtitle={t('즐거운 화음 실험')}
                                 circleColor="#FFD6A5"
                                 iconColor="#E27200"
                                 icon={<LayoutGrid size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('game-chords')}
                             />
                             <DashboardButton
-                                title="악기 탐험"
-                                subtitle="다양한 악기 소리"
+                                title={t('악기 탐험')}
+                                subtitle={t('다양한 악기 소리')}
                                 circleColor="#D7BDE2"
                                 iconColor="#8E44AD"
                                 icon={<Music size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('game-oscillators')}
                             />
                             <DashboardButton
-                                title="하프 스트링"
-                                subtitle="하프 소리 연주"
+                                title={t('하프 스트링')}
+                                subtitle={t('하프 소리 연주')}
                                 circleColor="#FAD7A1"
                                 iconColor="#E67E22"
                                 icon={<GitGraph size={32} strokeWidth={2.5} className="rotate-90" />}
                                 onClick={() => setCurrentView('game-strings')}
                             />
                             <DashboardButton
-                                title="아르페지오"
-                                subtitle="리드미컬한 화음"
+                                title={t('아르페지오')}
+                                subtitle={t('리드미컬한 화음')}
                                 circleColor="#C5CAE9"
                                 iconColor="#3F51B5"
                                 icon={<RotateCw size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('game-arpeggios')}
                             />
                             <DashboardButton
-                                title="보이스 스피너"
-                                subtitle="목소리 변형하기"
+                                title={t('보이스 스피너')}
+                                subtitle={t('목소리 변형하기')}
                                 circleColor="#A2D9CE"
                                 iconColor="#117A65"
                                 icon={<Mic size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('game-voicespinner')}
                             />
                             <DashboardButton
-                                title="하모닉스"
-                                subtitle="배음 원리 탐구"
+                                title={t('하모닉스')}
+                                subtitle={t('배음 원리 탐구')}
                                 circleColor="#FFC8DD"
                                 iconColor="#D81B60"
                                 icon={<Layers size={32} strokeWidth={2.5} />}
                                 onClick={() => setCurrentView('game-harmonics')}
                             />
                             <DashboardButton
-                                title="사운드 웨이브"
-                                subtitle="소리 파동 체험"
+                                title={t('사운드 웨이브')}
+                                subtitle={t('소리 파동 체험')}
                                 circleColor="#A0C4FF"
                                 iconColor="#1967D2"
                                 icon={<Waves size={32} strokeWidth={2.5} />}
@@ -238,8 +248,8 @@ const App: React.FC = () => {
                     <div className="w-full max-w-4xl mx-auto px-4 mt-12 animate-slide-up delay-100">
                         <header className="flex flex-row items-end justify-center gap-8 mb-12">
                             <div className="flex flex-col items-center text-center pb-4">
-                                <h1 className="text-4xl font-extrabold text-[#111111] tracking-tight mb-3">배우기</h1>
-                                <p className="text-[#333333] font-medium text-[17px]">차근차근 음악의 기초를 배워봐요.</p>
+                                <h1 className="text-4xl font-extrabold text-[#111111] tracking-tight mb-3">{t('배우기')}</h1>
+                                <p className="text-[#333333] font-medium text-[17px]">{t('차근차근 음악의 기초를 배워봐요.')}</p>
                             </div>
                             <img src={zamLearning} alt="Learning Mascot" className="w-40 h-auto object-contain drop-shadow-sm -mb-4" />
                         </header>

@@ -1993,6 +1993,37 @@ const PitchIntroGame: React.FC<{ step: LessonStep, onComplete: () => void }> = (
     );
 };
 
+const StompIcon: React.FC<{ className?: string }> = ({ className = '' }) => (
+    <svg
+        viewBox="0 0 120 120"
+        className={className}
+        aria-hidden="true"
+        focusable="false"
+    >
+        <path
+            d="M46 15c-8 0-14 6-14 14v26c0 10 4 19 11 26l5 5H35c-10 0-18 8-18 18v3h65c14 0 25-11 25-25v-2c0-8-6-14-14-14H73V41c0-14-12-26-27-26Z"
+            fill="currentColor"
+        />
+        <path
+            d="M34 30c0-7 5-12 12-12 13 0 24 10 24 23v24h23c6 0 11 5 11 11v2c0 12-10 22-22 22H20c1-7 7-12 15-12h19L44 78c-7-6-10-15-10-24V30Z"
+            fill="white"
+            opacity="0.95"
+        />
+        <path
+            d="M50 31c0-4 3-7 7-7s7 3 7 7-3 7-7 7-7-3-7-7Zm1 18c0-4 3-7 7-7s7 3 7 7-3 7-7 7-7-3-7-7Zm1 18c0-4 3-7 7-7s7 3 7 7-3 7-7 7-7-3-7-7Z"
+            fill="#EA4335"
+            opacity="0.9"
+        />
+        <path
+            d="M22 100h30M63 100h14M87 95h9"
+            stroke="#B71C1C"
+            strokeWidth="6"
+            strokeLinecap="round"
+            opacity="0.45"
+        />
+    </svg>
+);
+
 const RhythmGame: React.FC<{ step: LessonStep, onComplete: () => void, membrane: any }> = ({ step, onComplete, membrane }) => {
     const [taps, setTaps] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -2181,6 +2212,7 @@ const RhythmGame: React.FC<{ step: LessonStep, onComplete: () => void, membrane:
 
                 <div className="animate-pop-in mt-4 mb-8">
                     <button
+                        aria-label={isCountingDown ? `Countdown ${countdown}` : 'Stomp'}
                         disabled={isCountingDown}
                         onClick={async () => {
                             if (isCountingDown) return;
@@ -2219,8 +2251,8 @@ const RhythmGame: React.FC<{ step: LessonStep, onComplete: () => void, membrane:
                                 ${activeIndex !== -1 ? 'scale-150 opacity-0' : 'opacity-100'}
                             `} />
                         )}
-                        <span className={`font-black relative z-10 ${isCountingDown ? 'text-6xl animate-pulse text-slate-500' : 'text-5xl text-white'}`}>
-                            {isCountingDown ? countdown : '쿵!'}
+                        <span className={`font-black relative z-10 ${isCountingDown ? 'text-6xl animate-pulse text-slate-500' : 'text-white'}`}>
+                            {isCountingDown ? countdown : <StompIcon className="w-28 h-28 drop-shadow-sm" />}
                         </span>
                     </button>
                 </div>
