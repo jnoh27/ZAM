@@ -4,6 +4,7 @@ import { audioService } from '../services/audio';
 import { CHORDS_C_MAJOR, TOTAL_STEPS, DEFAULT_PROGRESSION } from '../constants';
 import { Chord, Progression, Melody, BeatGrid, NoteMode } from '../types';
 import { PianoRoll } from './PianoRoll';
+import { useTranslation } from '../contexts/LanguageContext';
 
 interface StudioProps { }
 
@@ -17,6 +18,7 @@ const ROWS_CONFIG = [
 const COLORS = ['#EA4335', '#FBBC04', '#34A853', '#4285F4', '#FF7043', '#AB47BC', '#00ACC1'];
 
 export const Studio: React.FC<StudioProps> = () => {
+  const { t } = useTranslation();
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3 | 4>(1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -74,8 +76,8 @@ export const Studio: React.FC<StudioProps> = () => {
   const renderRhythmArea = () => (
     <div className="flex flex-col flex-1 p-4 md:p-8 justify-center gap-4 animate-slide-up">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-black text-[#111] mb-2">1. 리듬 만들기</h2>
-        <p className="text-[#666]">16비트 드럼 머신으로 신나는 비트를 찍어보세요.</p>
+        <h2 className="text-3xl font-black text-[#111] mb-2">{t('1. 리듬 만들기')}</h2>
+        <p className="text-[#666]">{t('16비트 드럼 머신으로 신나는 비트를 찍어보세요.')}</p>
       </div>
 
       <div className="flex flex-col gap-4 overflow-x-auto pb-4 max-w-5xl mx-auto w-full">
@@ -123,8 +125,8 @@ export const Studio: React.FC<StudioProps> = () => {
       {/* Top: title + cards */}
       <div className={`flex flex-col items-center justify-center p-4 md:p-8 transition-all duration-300 ${activeChordSlot !== null ? 'flex-[0_0_auto]' : 'flex-1'}`}>
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-black text-[#111] mb-2">2. 화음 만들기</h2>
-          <p className="text-[#666]">비트와 어울리는 4개의 화음을 골라주세요.</p>
+          <h2 className="text-3xl font-black text-[#111] mb-2">{t('2. 화음 만들기')}</h2>
+          <p className="text-[#666]">{t('비트와 어울리는 4개의 화음을 골라주세요.')}</p>
         </div>
 
         <div className="w-full max-w-4xl mx-auto grid grid-cols-4 gap-4 md:gap-8">
@@ -150,8 +152,8 @@ export const Studio: React.FC<StudioProps> = () => {
                       style={{ backgroundColor: COLORS[CHORDS_C_MAJOR.findIndex(c => c.id === chord.id) % COLORS.length] }}>
                       {chord.roman}
                     </div>
-                    <span className="text-2xl font-black text-[#202124]">{chord.name}</span>
-                    <span className="text-sm font-bold text-[#5F6368]">{chord.mood}</span>
+                    <span className="text-2xl font-black text-[#202124]">{t(chord.name)}</span>
+                    <span className="text-sm font-bold text-[#5F6368]">{t(chord.mood)}</span>
                   </>
                 ) : (
                   <Plus size={48} strokeWidth={4} />
@@ -169,16 +171,16 @@ export const Studio: React.FC<StudioProps> = () => {
       `}>
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-black text-[#202124]">화음을 골라주세요</h2>
-            <button onClick={() => setActiveChordSlot(null)} className="px-6 py-2 bg-[#E8EAED] rounded-full font-bold text-[#5F6368]">닫기</button>
+            <h2 className="text-2xl font-black text-[#202124]">{t('화음을 골라주세요')}</h2>
+            <button onClick={() => setActiveChordSlot(null)} className="px-6 py-2 bg-[#E8EAED] rounded-full font-bold text-[#5F6368]">{t('닫기')}</button>
           </div>
           <div className="grid grid-cols-4 md:grid-cols-7 gap-4">
             {CHORDS_C_MAJOR.map((chord, idx) => (
               <button key={chord.id} onClick={() => handleChordSelect(chord)}
                 className="aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform"
                 style={{ backgroundColor: COLORS[idx % COLORS.length] }}>
-                <span className="text-white font-black text-xl">{chord.name.split(' ')[0]}</span>
-                <span className="text-white/80 font-bold text-xs">{chord.mood}</span>
+                <span className="text-white font-black text-xl">{t(chord.name.split(' ')[0])}</span>
+                <span className="text-white/80 font-bold text-xs">{t(chord.mood)}</span>
               </button>
             ))}
           </div>
@@ -191,8 +193,8 @@ export const Studio: React.FC<StudioProps> = () => {
     <div className="flex flex-col flex-1 p-4 md:p-8 animate-slide-up h-full overflow-hidden w-full">
       <div className="flex justify-between items-center mb-6 shrink-0 w-full">
         <div>
-          <h2 className="text-3xl font-black text-[#111] mb-2">3. 멜로디 만들기</h2>
-          <p className="text-[#666]">피아노 롤에 노트를 그려 나만의 선율을 완성하세요.</p>
+          <h2 className="text-3xl font-black text-[#111] mb-2">{t('3. 멜로디 만들기')}</h2>
+          <p className="text-[#666]">{t('피아노 롤에 노트를 그려 나만의 선율을 완성하세요.')}</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex bg-white shadow-sm border border-gray-200 rounded-full p-1.5 gap-1">
@@ -200,19 +202,19 @@ export const Studio: React.FC<StudioProps> = () => {
                onClick={() => setNoteMode('chord')}
                className={`px-5 py-2.5 rounded-full font-black text-sm transition-all duration-200 ${noteMode === 'chord' ? 'bg-[#4285F4] text-white shadow-sm' : 'text-[#5F6368] hover:bg-gray-100'}`}
              >
-               쉬운 음
+               {t('쉬운 음')}
              </button>
              <button 
                onClick={() => setNoteMode('scale')}
                className={`px-5 py-2.5 rounded-full font-black text-sm transition-all duration-200 ${noteMode === 'scale' ? 'bg-[#4285F4] text-white shadow-sm' : 'text-[#5F6368] hover:bg-gray-100'}`}
              >
-               보통 음
+               {t('보통 음')}
              </button>
              <button 
                onClick={() => setNoteMode('chromatic')}
                className={`px-5 py-2.5 rounded-full font-black text-sm transition-all duration-200 ${noteMode === 'chromatic' ? 'bg-[#4285F4] text-white shadow-sm' : 'text-[#5F6368] hover:bg-gray-100'}`}
              >
-               모든 음
+               {t('모든 음')}
              </button>
           </div>
           <button 
@@ -245,8 +247,8 @@ export const Studio: React.FC<StudioProps> = () => {
       </div>
 
       <div className="text-center mb-16 relative z-10">
-        <h2 className="text-5xl font-extrabold text-[#111111] mb-4 tracking-tight drop-shadow-sm">트랙 완성!</h2>
-        <p className="text-[#666666] text-lg font-medium">지금까지 만든 모든 트랙 요소들이 합쳐졌어요.</p>
+        <h2 className="text-5xl font-extrabold text-[#111111] mb-4 tracking-tight drop-shadow-sm">{t('트랙 완성!')}</h2>
+        <p className="text-[#666666] text-lg font-medium">{t('지금까지 만든 모든 트랙 요소들이 합쳐졌어요.')}</p>
       </div>
 
       {/* Download Section */}
@@ -273,16 +275,16 @@ export const Studio: React.FC<StudioProps> = () => {
           {isRecording ? (
             <>
               <Disc size={64} className="animate-spin mb-2" /> 
-              레코딩 중...
+              {t('레코딩 중...')}
             </>
           ) : (
             <>
               <Download size={64} strokeWidth={2.5} className="mb-2" /> 
-              트랙 다운로드
+              {t('트랙 다운로드')}
             </>
           )}
         </button>
-        {isRecording && <p className="text-rose-500 font-bold bg-rose-50 border border-rose-100 px-6 py-3 rounded-full animate-bounce mt-4 shadow-sm">오디오가 백그라운드에서 녹음되고 있습니다... (약 8초 소요)</p>}
+        {isRecording && <p className="text-rose-500 font-bold bg-rose-50 border border-rose-100 px-6 py-3 rounded-full animate-bounce mt-4 shadow-sm">{t('오디오가 백그라운드에서 녹음되고 있습니다... (약 8초 소요)')}</p>}
       </div>
     </div>
   );
@@ -325,7 +327,7 @@ export const Studio: React.FC<StudioProps> = () => {
           className={`px-8 py-3 rounded-full font-bold flex items-center gap-2 transition-all ${wizardStep === 1 ? 'opacity-0 pointer-events-none' : 'text-[#5F6368] bg-[#E8EAED] shadow-[0_4px_0_rgba(189,193,198,1)] hover:translate-y-[1px] hover:shadow-[0_3px_0_rgba(189,193,198,1)] active:translate-y-[4px] active:shadow-none'}`}
         >
           <ArrowLeft size={20} />
-          이전
+          {t('이전')}
         </button>
 
         {/* Play Button */}
@@ -350,7 +352,7 @@ export const Studio: React.FC<StudioProps> = () => {
               ? 'bg-emerald-500 shadow-[0_4px_0_rgba(16,185,129,1)] hover:translate-y-[1px] hover:shadow-[0_3px_0_rgba(16,185,129,1)] active:translate-y-[4px] active:shadow-none' 
               : 'bg-[#9D71E8] shadow-[0_4px_0_rgba(126,87,194,1)] hover:translate-y-[1px] hover:shadow-[0_3px_0_rgba(126,87,194,1)] active:translate-y-[4px] active:shadow-none'}`}
         >
-          {wizardStep === 4 ? '처음으로' : '다음'}
+          {wizardStep === 4 ? t('처음으로') : t('다음')}
         </button>
       </div>
 
