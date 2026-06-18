@@ -464,5 +464,6 @@ export const en: Record<string, string> = {
   "Zam (잼)": "Zam (잼)",
   "ZAM 이용 가이드": "ZAM User Guide",
   "zam-(?)": "zam",
-  "zam-(잼)": "zam-(잼)"
+  "zam-(잼)": "zam-(잼)",
+  "템포": "Tempo"
 };

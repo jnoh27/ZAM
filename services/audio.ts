@@ -18,6 +18,7 @@ class AudioService {
   private limiter: Tone.Limiter | null = null;
   private recorder: Tone.Recorder | null = null;
   private currentStepIndex: number = 0;
+  private bpm: number = 100;
 
   async init() {
     // If already initialized but sequence was destroyed (e.g. by Playground cleanup),
@@ -88,7 +89,7 @@ class AudioService {
       onerror: (e) => console.error("[AudioService] Drum sampler error:", e)
     }).connect(this.limiter);
 
-    Tone.Transport.bpm.value = 100;
+    Tone.Transport.bpm.value = this.bpm;
 
     const steps = Array.from({ length: TOTAL_STEPS }, (_, i) => i);
 
@@ -257,7 +258,12 @@ class AudioService {
   }
 
   setBpm(bpm: number) {
+    this.bpm = bpm;
     Tone.Transport.bpm.value = bpm;
+  }
+
+  getBpm(): number {
+    return this.isInitialized ? Tone.Transport.bpm.value : this.bpm;
   }
 
   previewNote(note: string) {

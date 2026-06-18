@@ -17,6 +17,7 @@ const TRANSLATABLE_ATTRIBUTES = ['aria-label', 'alt', 'placeholder', 'title'];
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 const ENGLISH_OVERRIDES: Record<string, string> = {
+    '템포': 'Tempo',
     '놀이터': 'Playground',
     '학교': 'Learning',
     '스튜디오': 'Studio',

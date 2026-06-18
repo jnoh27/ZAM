@@ -24,6 +24,7 @@ export const Studio: React.FC<StudioProps> = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [playbackStep, setPlaybackStep] = useState(-1);
   const [noteMode, setNoteMode] = useState<NoteMode>('chord');
+  const [bpm, setBpm] = useState(() => audioService.getBpm());
 
   // Tracks State
   const [beatGrid, setBeatGrid] = useState<BeatGrid>(
@@ -39,6 +40,10 @@ export const Studio: React.FC<StudioProps> = () => {
   useEffect(() => {
     audioService.setStepCallback((step) => setPlaybackStep(step));
   }, []);
+
+  useEffect(() => {
+    audioService.setBpm(bpm);
+  }, [bpm]);
 
   useEffect(() => { audioService.updateBeats(beatGrid); }, [beatGrid]);
   useEffect(() => { 
@@ -293,9 +298,12 @@ export const Studio: React.FC<StudioProps> = () => {
     <div className="w-full flex-1 flex flex-col bg-white">
       
       {/* Studio Header / Progress */}
-      <header className="px-6 py-4 border-b flex items-center justify-center shrink-0 z-50 transition-colors bg-white border-gray-100">
+      <header className="px-6 py-4 border-b flex items-center justify-between shrink-0 z-50 transition-colors bg-white border-gray-100 relative">
+        {/* Left spacer for centering progress pills */}
+        <div className="w-[180px] md:w-[220px] hidden sm:block" />
+
         {/* Progress Pills */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 mx-auto sm:mx-0">
           {[1, 2, 3, 4].map((step) => (
             <button
               key={step}
@@ -306,6 +314,22 @@ export const Studio: React.FC<StudioProps> = () => {
               `}
             />
           ))}
+        </div>
+
+        {/* Tempo Slider on the Top Right */}
+        <div className="w-[180px] md:w-[220px] flex items-center gap-2.5 bg-gray-50 border border-gray-100 rounded-full px-3.5 py-1 shadow-sm shrink-0">
+          <div className="flex flex-col items-start">
+            <span className="text-[9px] font-black text-[#9D71E8] uppercase tracking-wider leading-none mb-0.5">{t('템포')}</span>
+            <span className="text-xs font-black text-gray-800 tabular-nums leading-none">{bpm} BPM</span>
+          </div>
+          <input
+            type="range"
+            min="60"
+            max="180"
+            value={bpm}
+            onChange={(e) => setBpm(parseInt(e.target.value))}
+            className="flex-1 h-5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-[#9D71E8] hover:accent-[#8050D0] transition-all"
+          />
         </div>
       </header>
 
