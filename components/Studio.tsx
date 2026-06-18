@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Play, Pause, Circle, Square, Triangle, Zap, Plus, RotateCcw, Download, Disc } from 'lucide-react';
-import { audioService } from '../services/audio';
+import { audioService, InstrumentType } from '../services/audio';
 import { CHORDS_C_MAJOR, TOTAL_STEPS, DEFAULT_PROGRESSION } from '../constants';
 import { Chord, Progression, Melody, BeatGrid, NoteMode } from '../types';
 import { PianoRoll } from './PianoRoll';
@@ -25,6 +25,7 @@ export const Studio: React.FC<StudioProps> = () => {
   const [playbackStep, setPlaybackStep] = useState(-1);
   const [noteMode, setNoteMode] = useState<NoteMode>('chord');
   const [bpm, setBpm] = useState(() => audioService.getBpm());
+  const [instrument, setInstrument] = useState<InstrumentType>(() => audioService.getInstrument());
 
   // Tracks State
   const [beatGrid, setBeatGrid] = useState<BeatGrid>(
@@ -44,6 +45,10 @@ export const Studio: React.FC<StudioProps> = () => {
   useEffect(() => {
     audioService.setBpm(bpm);
   }, [bpm]);
+
+  useEffect(() => {
+    audioService.setInstrument(instrument);
+  }, [instrument]);
 
   useEffect(() => { audioService.updateBeats(beatGrid); }, [beatGrid]);
   useEffect(() => { 
@@ -201,7 +206,21 @@ export const Studio: React.FC<StudioProps> = () => {
           <h2 className="text-3xl font-black text-[#111] mb-2">{t('3. 멜로디 만들기')}</h2>
           <p className="text-[#666]">{t('피아노 롤에 노트를 그려 나만의 선율을 완성하세요.')}</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap justify-end">
+          {/* Instrument Selector */}
+          <div className="flex bg-white shadow-sm border border-gray-200 rounded-full p-1.5 gap-1">
+             {(['piano', 'violin', 'trumpet', 'bells'] as const).map((inst) => (
+               <button 
+                 key={inst}
+                 onClick={() => setInstrument(inst)}
+                 className={`px-4 py-2.5 rounded-full font-black text-sm transition-all duration-200 ${instrument === inst ? 'bg-[#9D71E8] text-white shadow-sm' : 'text-[#5F6368] hover:bg-gray-100'}`}
+               >
+                 {t(inst === 'piano' ? '피아노' : inst === 'violin' ? '바이올린' : inst === 'trumpet' ? '트럼펫' : '종소리')}
+               </button>
+             ))}
+          </div>
+
+          {/* Difficulty/Note Mode Selector */}
           <div className="flex bg-white shadow-sm border border-gray-200 rounded-full p-1.5 gap-1">
              <button 
                onClick={() => setNoteMode('chord')}

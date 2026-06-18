@@ -2,6 +2,53 @@ import * as Tone from 'tone';
 import { TOTAL_STEPS, SUSTAIN_TOKEN, STEPS_PER_BAR } from '../constants';
 import { Melody, Progression, BeatGrid } from '../types';
 
+export type InstrumentType = 'piano' | 'violin' | 'trumpet' | 'bells';
+
+const INSTRUMENT_SAMPLES: Record<InstrumentType, { baseUrl: string, urls: Record<string, string>, volume: number }> = {
+  piano: {
+    baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/piano/",
+    urls: {
+      "A3": "A3.mp3",
+      "A4": "A4.mp3",
+      "A5": "A5.mp3",
+      "C4": "C4.mp3",
+      "C5": "C5.mp3"
+    },
+    volume: -3
+  },
+  violin: {
+    baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/violin/",
+    urls: {
+      "A3": "A3.mp3",
+      "C4": "C4.mp3",
+      "E4": "E4.mp3",
+      "A4": "A4.mp3",
+      "C5": "C5.mp3"
+    },
+    volume: -6
+  },
+  trumpet: {
+    baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/trumpet/",
+    urls: {
+      "A3": "A3.mp3",
+      "C4": "C4.mp3",
+      "F4": "F4.mp3",
+      "A5": "A5.mp3"
+    },
+    volume: -8
+  },
+  bells: {
+    baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/xylophone/",
+    urls: {
+      "G4": "G4.mp3",
+      "C5": "C5.mp3",
+      "G5": "G5.mp3",
+      "C6": "C6.mp3"
+    },
+    volume: -8
+  }
+};
+
 class AudioService {
   private synth: Tone.Sampler | null = null;
   private chordSynth: Tone.Sampler | null = null;
@@ -19,6 +66,7 @@ class AudioService {
   private recorder: Tone.Recorder | null = null;
   private currentStepIndex: number = 0;
   private bpm: number = 100;
+  private currentInstrument: InstrumentType = 'piano';
 
   async init() {
     // If already initialized but sequence was destroyed (e.g. by Playground cleanup),
@@ -45,19 +93,14 @@ class AudioService {
       wet: 0.15
     }).connect(this.limiter);
 
-    // Initial Melody Synth - Piano Sampler
+    // Initial Melody Synth
+    const instConfig = INSTRUMENT_SAMPLES[this.currentInstrument];
     this.synth = new Tone.Sampler({
-      urls: {
-        "A3": "A3.mp3",
-        "A4": "A4.mp3",
-        "A5": "A5.mp3",
-        "C4": "C4.mp3",
-        "C5": "C5.mp3"
-      },
-      baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/piano/",
-      volume: 0,
-      onload: () => console.log("[AudioService] Piano sampler loaded"),
-      onerror: (e) => console.error("[AudioService] Piano sampler error:", e)
+      urls: instConfig.urls,
+      baseUrl: instConfig.baseUrl,
+      volume: instConfig.volume,
+      onload: () => console.log(`[AudioService] ${this.currentInstrument} sampler loaded`),
+      onerror: (e) => console.error(`[AudioService] ${this.currentInstrument} sampler error:`, e)
     }).connect(this.reverb);
 
     const filter = new Tone.Filter(800, "lowpass").connect(this.reverb);
@@ -264,6 +307,37 @@ class AudioService {
 
   getBpm(): number {
     return this.isInitialized ? Tone.Transport.bpm.value : this.bpm;
+  }
+
+  getInstrument(): InstrumentType {
+    return this.currentInstrument;
+  }
+
+  async setInstrument(inst: InstrumentType) {
+    if (this.currentInstrument === inst) return;
+    this.currentInstrument = inst;
+
+    if (!this.isInitialized) return;
+
+    if (this.synth) {
+      this.synth.dispose();
+      this.synth = null;
+    }
+
+    const config = INSTRUMENT_SAMPLES[inst];
+    this.synth = new Tone.Sampler({
+      urls: config.urls,
+      baseUrl: config.baseUrl,
+      volume: config.volume,
+      onload: () => console.log(`[AudioService] ${inst} sampler loaded`),
+      onerror: (e) => console.error(`[AudioService] ${inst} sampler error:`, e)
+    }).connect(this.reverb!);
+
+    try {
+      await Tone.loaded();
+    } catch (e) {
+      console.warn(`[AudioService] ${inst} samples load error:`, e);
+    }
   }
 
   previewNote(note: string) {
